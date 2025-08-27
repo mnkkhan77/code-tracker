@@ -1,0 +1,130 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+:root {
+  --radius: 0.5rem;
+}
+
+.light {
+  --background: 140 50% 98%;
+  --foreground: 25 25% 15%;
+  --card: 140 20% 92%;
+  --card-foreground: 25 25% 15%;
+  --popover: 140 20% 92%;
+  --popover-foreground: 25 25% 15%;
+  --primary: 150 50% 40%;
+  --primary-foreground: 150 20% 98%;
+  --secondary: 140 25% 88%;
+  --secondary-foreground: 25 25% 15%;
+  --muted: 140 25% 88%;
+  --muted-foreground: 25 25% 40%;
+  --accent: 140 25% 88%;
+  --accent-foreground: 25 25% 15%;
+  --destructive: 0 60% 50%;
+  --border: 140 10% 80%;
+  --input: 140 15% 90%;
+  --ring: 150 50% 40%;
+  --chart-1: 150 50% 40%;
+  --chart-2: 100 40% 45%;
+  --chart-3: 40 70% 55%;
+  --chart-4: 280 50% 60%;
+  --chart-5: 0 60% 60%;
+  --sidebar: 140 20% 92%;
+  --sidebar-foreground: 25 25% 15%;
+  --sidebar-primary: 150 50% 40%;
+  --sidebar-primary-foreground: 150 20% 98%;
+  --sidebar-accent: 140 25% 88%;
+  --sidebar-accent-foreground: 25 25% 15%;
+  --sidebar-border: 140 10% 80%;
+  --sidebar-ring: 150 50% 40%;
+}
+
+.dark {
+  --background: 150 15% 10%;
+  --foreground: 30 30% 90%;
+  --card: 150 15% 12%;
+  --card-foreground: 30 30% 90%;
+  --popover: 150 15% 10%;
+  --popover-foreground: 30 30% 90%;
+  --primary: 140 60% 70%;
+  --primary-foreground: 150 25% 15%;
+  --secondary: 150 15% 20%;
+  --secondary-foreground: 30 30% 90%;
+  --muted: 150 15% 20%;
+  --muted-foreground: 30 20% 70%;
+  --accent: 150 15% 20%;
+  --accent-foreground: 30 30% 90%;
+  --destructive: 0 70% 60%;
+  --border: 150 15% 25%;
+  --input: 150 15% 25%;
+  --ring: 140 60% 70%;
+  --chart-1: 140 60% 70%;
+  --chart-2: 100 50% 65%;
+  --chart-3: 40 80% 65%;
+  --chart-4: 280 60% 70%;
+  --chart-5: 0 70% 70%;
+  --sidebar: 150 15% 12%;
+  --sidebar-foreground: 30 30% 90%;
+  --sidebar-primary: 140 60% 70%;
+  --sidebar-primary-foreground: 150 25% 15%;
+  --sidebar-accent: 150 15% 20%;
+  --sidebar-accent-foreground: 30 30% 90%;
+  --sidebar-border: 150 15% 25%;
+  --sidebar-ring: 140 60% 70%;
+}
+Cyber-Glow theme colors :root {
+  --radius: 0.5rem;
+}
+
+.light {
+  --background: 220 20% 96%;
+  --foreground: 220 15% 10%;
+  --card: 220 20% 100%;
+  --card-foreground: 220 15% 10%;
+  --popover: 220 20% 100%;
+  --popover-foreground: 220 15% 10%;
+  --primary: 158 82% 57%;
+  --primary-foreground: 220 15% 10%;
+  --secondary: 220 15% 90%;
+  --secondary-foreground: 220 15% 10%;
+  --muted: 220 15% 90%;
+  --muted-foreground: 220 10% 45%;
+  --accent: 220 15% 90%;
+  --accent-foreground: 220 15% 10%;
+  --destructive: 0 84% 60%;
+  --border: 220 15% 88%;
+  --input: 220 15% 88%;
+  --ring: 158 82% 57%;
+  --chart-1: 158 82% 57%;
+  --chart-2: 200 80% 60%;
+  --chart-3: 40 80% 60%;
+  --chart-4: 280 80% 60%;
+  --chart-5: 0 80% 60%;
+}
+
+.dark {
+  --background: 223, 14%, 10%; /* Dark Slate Blue */
+  --foreground: 210, 20%, 95%; /* Light Gray */
+  --card: 223, 14%, 13%;
+  --card-foreground: 210, 20%, 95%;
+  --popover: 223, 14%, 10%;
+  --popover-foreground: 210, 20%, 95%;
+  --primary: 158, 82%, 57%; /* Bright Mint Green */
+  --primary-foreground: 223, 14%, 10%;
+  --secondary: 223, 14%, 20%;
+  --secondary-foreground: 210, 20%, 95%;
+  --muted: 223, 14%, 20%;
+  --muted-foreground: 210, 20%, 75%;
+  --accent: 223, 14%, 25%;
+  --accent-foreground: 158, 82%, 57%;
+  --destructive: 0, 72%, 51%;
+  --border: 223, 14%, 20%;
+  --input: 223, 14%, 20%;
+  --ring: 158, 82%, 57%;
+  --chart-1: 158, 82%, 57%;
+  --chart-2: 200, 80%, 60%;
+  --chart-3: 40, 80%, 60%;
+  --chart-4: 280, 80% 60%;
+  --chart-5: 0, 80% 60%;
+}
