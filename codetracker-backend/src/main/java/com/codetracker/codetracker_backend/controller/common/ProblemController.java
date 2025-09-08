@@ -5,7 +5,6 @@ import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ProblemService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +25,10 @@ public class ProblemController {
     }
 
     @GetMapping("/{id}")
-    public ProblemDto  getProblem(@PathVariable UUID id) {
+    public ProblemDto getProblem(@PathVariable UUID id) {
         return problemService.getProblemById(id);
     }
+
     @GetMapping("/me")
     public List<Problem> getMyProblems(Authentication auth) {
         UUID userId = userRepository.findByEmail(auth.getName())

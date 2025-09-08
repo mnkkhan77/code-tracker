@@ -1,15 +1,17 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import com.codetracker.codetracker_backend.dto.TopicDto;
+import com.codetracker.codetracker_backend.dto.TopicWithProgressDto;
 import com.codetracker.codetracker_backend.entity.Topic;
+import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.TopicRepository;
+import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.service.TopicService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 public class TopicServiceImpl implements TopicService {
 
     private final TopicRepository topicRepository;
+    private final UserProgressRepository userProgressRepository;
 
     @Override
     public Topic createTopic(Topic topic) {
@@ -62,5 +65,16 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public void deleteTopic(UUID topicId) {
         topicRepository.deleteById(topicId);
+    }
+
+    @Override
+    public TopicWithProgressDto getTopicBySlugWithProgress(String slug, UUID userId) {
+        com.codetracker.codetracker_backend.entity.Topic topic = topicRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
+
+        // Fetch user progress for this user
+        List<UserProgress> userProgressList = userProgressRepository.findByUserId(userId);
+
+        return TopicWithProgressDto.toDto(topic, userProgressList);
     }
 }

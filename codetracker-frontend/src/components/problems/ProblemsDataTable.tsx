@@ -1,3 +1,4 @@
+// src/components/problems/ProblemsDataTable.tsx
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,6 +84,7 @@ export function ProblemsDataTable({
               <TableHead className="w-[120px]">Status</TableHead>
             )}
             <TableHead>Title</TableHead>
+            <TableHead>Links</TableHead>
             {showStatusColumn && (
               <TableHead className="w-[180px]">Best Time</TableHead>
             )}
@@ -107,7 +109,7 @@ export function ProblemsDataTable({
                 {showStatusColumn && (
                   <TableCell>
                     <Select
-                      key={`${problem.id}-${problem.status}`}
+                      // key={`${problem.id}-${problem.status}`}
                       value={problem.status}
                       onValueChange={(
                         newStatus: "not_started" | "in_progress" | "completed"
@@ -143,10 +145,28 @@ export function ProblemsDataTable({
                     <span>{problem.title}</span>
                   )}
                 </TableCell>
+                <TableCell>
+                  {problem.externalUrls && problem.externalUrls.length > 0 ? (
+                    problem.externalUrls.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline mr-2"
+                      >
+                        {link.platform}
+                      </a>
+                    ))
+                  ) : (
+                    <span className="text-gray-400">No Links</span>
+                  )}
+                </TableCell>
+
                 {showStatusColumn && (
                   <TableCell>
                     <BestTimeEditor
-                      key={`${problem.id}-${problem.bestTime}`}
+                      // key={`${problem.id}-${problem.bestTime}`}
                       timeInSeconds={problem.bestTime}
                       onSave={(newTime) =>
                         onBestTimeChange(problem.id, newTime)

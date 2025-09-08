@@ -35,7 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(currentUser);
       return currentUser;
     } catch (error) {
-      // This is expected if the user is not logged in
       setUser(null);
       return null;
     } finally {
@@ -64,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       await authService.register(userData);
-      // After successful registration, log the user in
+      // auto login after registration
       // await authService.login(userData.email, userData.password);
       // await checkUser();
       toast.success(`Welcome! Registration successful.`);

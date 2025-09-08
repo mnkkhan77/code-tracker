@@ -1,7 +1,7 @@
 // src/contexts/UserDataContext.tsx
 import { useAuth } from "@/hooks/use-auth";
 import * as authService from "@/services/authService";
-import { User } from "@/types/api";
+import { Ctx, User } from "@/types/api";
 import {
   createContext,
   ReactNode,
@@ -11,13 +11,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-
-type Ctx = {
-  profile: User | null;
-  loading: boolean;
-  refreshProfile: () => Promise<void>;
-  updateProfile: (updated: Partial<User>) => Promise<void>;
-};
 
 const UserDataContext = createContext<Ctx | undefined>(undefined);
 

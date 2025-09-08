@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.service;
 
 import com.codetracker.codetracker_backend.dto.TopicDto;
+import com.codetracker.codetracker_backend.dto.TopicWithProgressDto;
 import com.codetracker.codetracker_backend.entity.Topic;
 
 import java.util.List;
@@ -14,6 +15,7 @@ public interface TopicService {
     TopicDto getTopicBySlug(String slug);
     Topic updateTopic(UUID topicId, Topic updatedTopic);
     void deleteTopic(UUID topicId);
+    TopicWithProgressDto getTopicBySlugWithProgress(String slug, UUID userId);
 }
 
 

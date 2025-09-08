@@ -9,7 +9,6 @@ export const register = async (payload: {
   role?: string;
   bio?: string;
 }) => {
-  // Backend returns { message: "Registered successfully" }
   const res = await apiClient.post("/auth/register", payload);
   return res.data;
 };
@@ -24,7 +23,6 @@ export const login = async (
   return res.data;
 };
 
-// Source of truth for the logged-in user
 export const getProfile = async (): Promise<User> => {
   const res = await apiClient.get<User>("/profile/me");
   return res.data;

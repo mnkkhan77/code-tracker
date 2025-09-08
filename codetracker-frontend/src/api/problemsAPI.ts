@@ -24,6 +24,13 @@ export const getTopicBySlug = async (slug: string): Promise<Topic | null> => {
     throw e;
   }
 };
+// In your problemsAPI or frontend service
+export async function getTopicBySlugWithProgress(slug: string) {
+  const response = await apiClient.get(
+    `/api/topics/slug/${slug}/with-progress`
+  );
+  return response.data;
+}
 
 export const createTopic = async (topic: Partial<Topic>): Promise<Topic> => {
   const res = await apiClient.post<Topic>("/topics", topic);

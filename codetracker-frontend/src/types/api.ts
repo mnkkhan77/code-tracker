@@ -49,7 +49,7 @@ export interface Problem {
   slug?: string | null;
   status?: ProgressStatus;
   bestTime?: number | null;
-  externalUrls?: any;
+  externalUrls?: ExternalUrl[];
 }
 
 // --- User Progress ---
@@ -81,7 +81,7 @@ export interface Attempt {
   id: string;
   userId: string;
   problemId: string;
-  duration?: number; // seconds (optional if backend doesn’t track)
+  duration?: number; // seconds
   timestamp: number; // epoch millis
 }
 
@@ -131,4 +131,27 @@ export interface TopicWithStats extends Topic {
   completedProblems: number;
   totalProblems: number;
   progressPercentage: number;
+}
+
+export interface DashboardStats {
+  totalProblems: number;
+  solvedProblems: number;
+  attemptedProblems: number;
+}
+
+export type Ctx = {
+  profile: User | null;
+  loading: boolean;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (updated: Partial<User>) => Promise<void>;
+};
+
+export interface ExternalUrl {
+  platform: string;
+  url: string;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
 }

@@ -9,7 +9,6 @@ export const getUserProfile = async (): Promise<User> => {
 export const updateUserProfile = async (
   payload: Partial<User>
 ): Promise<User> => {
-  // Spring: PATCH /api/profile/me (ProfileController.updateMyProfile)
   const res = await apiClient.patch<User>("/profile/me", payload);
   return res.data;
 };

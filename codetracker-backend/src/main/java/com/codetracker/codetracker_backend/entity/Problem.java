@@ -28,9 +28,6 @@ public class Problem {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
-    @ElementCollection
-    private List<String> tags;
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
@@ -43,4 +40,13 @@ public class Problem {
 
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserProgress> progressList = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "problem_tags",
+            joinColumns = @JoinColumn(name = "problem_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags = new ArrayList<>();
+
 }

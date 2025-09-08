@@ -22,7 +22,6 @@ export const getProgressByProblem = async (
   const res = await apiClient.get<UserProgress[]>(
     `/progress/problem/${problemId}`
   );
-  console.log("problems been fetched");
   return res.data;
 };
 
@@ -42,7 +41,6 @@ export const updateProgress = async (
 };
 
 export const addAttempt = async (dto: AddAttemptDto) => {
-  // Backend: POST /api/attempts with Attempt DTO
   const res = await apiClient.post("/attempts", dto);
   return res.data;
 };

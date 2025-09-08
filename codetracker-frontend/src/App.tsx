@@ -33,12 +33,12 @@ import TopicsPage from "@/pages/Topics";
 
 // Admin Pages
 import AdminDashboard from "@/pages/AdminDashboard";
-import DummyPage from "@/pages/TopicPage";
 import AdminProblemDetailsPage from "@/pages/admin/AdminProblemDetailsPage";
 import AdminRevenuePage from "@/pages/admin/AdminRevenuePage";
 import AdminUserDetailsPage from "@/pages/admin/AdminUserDetailsPage";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import { AdBlockerDetector } from "./components/AdBlockerDetector";
+import TopicPage from "./pages/TopicPage";
 
 function App() {
   return (
@@ -73,8 +73,8 @@ function App() {
                   element={<ATSResumeChecker />}
                 />
                 <Route path="/topics" element={<TopicsPage />} />
-                {/* <Route path="/topics/:slug" element={<TopicPage />} /> */}
-                <Route path="/topics/:slug" element={<DummyPage />} />
+                <Route path="/topics/:slug" element={<TopicPage />} />
+                {/* <Route path="/topics/:slug" element={<DummyPage />} /> */}
 
                 {/* Admin-only Routes */}
                 <Route element={<AdminRoute />}>

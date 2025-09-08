@@ -27,7 +27,7 @@ public class UserProgress {
     private String status; // not_started, in_progress, completed
     private String notes;
 
-    private Integer bestTime; // in seconds
+    private Long bestTime; // in seconds
 
     private LocalDate lastAttemptDate;
     private LocalDate nextReviewDate;
