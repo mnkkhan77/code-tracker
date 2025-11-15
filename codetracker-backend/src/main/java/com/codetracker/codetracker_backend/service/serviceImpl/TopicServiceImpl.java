@@ -69,12 +69,21 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public TopicWithProgressDto getTopicBySlugWithProgress(String slug, UUID userId) {
-        com.codetracker.codetracker_backend.entity.Topic topic = topicRepository.findBySlug(slug)
+        Topic topic = topicRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
 
-        // Fetch user progress for this user
         List<UserProgress> userProgressList = userProgressRepository.findByUserId(userId);
 
         return TopicWithProgressDto.toDto(topic, userProgressList);
+    }
+
+    public List<TopicWithProgressDto> getTopicsWithProgress(UUID userId) {
+        List<Topic> topics = topicRepository.findAll();
+
+        List<UserProgress> userProgressList = userProgressRepository.findByUserId(userId);
+
+        return topics.stream()
+                .map(topic -> TopicWithProgressDto.toDto(topic, userProgressList))
+                .toList();
     }
 }

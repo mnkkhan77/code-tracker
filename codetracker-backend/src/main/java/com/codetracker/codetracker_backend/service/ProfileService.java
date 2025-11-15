@@ -7,7 +7,7 @@ import com.codetracker.codetracker_backend.entity.User;
 import java.util.UUID;
 
 public interface ProfileService {
-    User getMyProfile(UUID userId);
-    User updateMyProfile(UUID userId, UserDto request);
-    UserStatsDto getMyStats(UUID userId);
+    UserDto getMyProfile(UUID userId);
+    UserDto updateMyProfile(UUID userId, UserDto request);
+    UserStatsDto getUserStats(UUID userId);
 }

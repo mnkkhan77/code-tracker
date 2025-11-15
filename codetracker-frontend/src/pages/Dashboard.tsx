@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useTopicsPageData } from "@/hooks/useTopicsPageData";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -18,6 +19,7 @@ import { Link } from "react-router-dom";
 
 function DashboardContent() {
   const { loading, userStats, upcomingReviews, topics } = useDashboardStats();
+  const { topicsWithStats } = useTopicsPageData();
 
   if (loading) {
     return (
@@ -167,8 +169,11 @@ function DashboardContent() {
                   </div>
                   <div className="text-center p-4 bg-secondary rounded-lg">
                     <p className="text-2xl font-bold text-ring">
-                      {Math.round(userStats.totalTimeSpent / 60)}h
+                      {Math.floor(userStats.totalTimeSpent / 3600) > 0
+                        ? `${Math.floor(userStats.totalTimeSpent / 3600)}h ${Math.floor((userStats.totalTimeSpent % 3600) / 60)}m`
+                        : `${Math.floor(userStats.totalTimeSpent / 60)}m`}
                     </p>
+
                     <p className="text-sm text-muted-foreground">Time Spent</p>
                   </div>
                 </div>
@@ -257,8 +262,8 @@ function DashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {topics.slice(0, 6).map((topic) => (
-                  <motion.div key={topic.id} whileHover={{ scale: 1.03 }}>
+                {topicsWithStats.slice(0, 6).map((topic) => (
+                  <motion.div key={topic.slug} whileHover={{ scale: 1.03 }}>
                     <Link
                       to={`/topics/${topic.slug}`}
                       className="block p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
@@ -266,7 +271,7 @@ function DashboardContent() {
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-medium">{topic.name}</h3>
                         <span className="text-sm text-muted-foreground">
-                          {topic.completed}/{topic.totalProblems}
+                          {topic.completedProblems}/{topic.totalProblems}
                         </span>
                       </div>
                       <Progress

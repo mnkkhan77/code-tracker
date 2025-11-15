@@ -62,6 +62,18 @@ function ProblemFormModalComponent({
   onClose,
   onSave,
 }: ProblemFormModalProps) {
+  const getDifficultyColor = (difficulty: "easy" | "medium" | "hard") => {
+    switch (difficulty) {
+      case "easy":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "hard":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+    }
+  };
   const [formData, setFormData] = useState<Partial<Problem>>({});
   const [currentUrl, setCurrentUrl] = useState({ platform: "", url: "" });
   const [errors, setErrors] = useState<{
@@ -214,6 +226,15 @@ function ProblemFormModalComponent({
                   <SelectItem value="hard">Hard</SelectItem>
                 </SelectContent>
               </Select>
+              {/* ✅ Use exactly the same Badge structure as working example */}
+              <Badge
+                variant="outline"
+                className={`capitalize ${getDifficultyColor(
+                  formData.difficulty || "easy"
+                )}`}
+              >
+                {formData.difficulty}
+              </Badge>
             </div>
             <div className="space-y-2">
               <Label htmlFor="topicName">Topic</Label>

@@ -22,7 +22,6 @@ export function AdBlockerDetector({ children }: { children: React.ReactNode }) {
       // If the element is not rendered (offsetParent is null) or its height is 0, it's blocked.
       if (bait.offsetHeight === 0 || bait.offsetParent === null) {
         setAdBlockerDetected(true);
-        console.warn("Ad blocker detected via DOM bait element.");
       }
 
       // Clean up the bait element

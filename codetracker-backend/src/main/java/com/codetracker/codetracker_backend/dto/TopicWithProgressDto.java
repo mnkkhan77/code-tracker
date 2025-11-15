@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record TopicWithProgressDto(
-        UUID id,
         String name,
         String description,
         String slug,
@@ -15,7 +14,6 @@ public record TopicWithProgressDto(
 ) {
     public static TopicWithProgressDto toDto(com.codetracker.codetracker_backend.entity.Topic topic, List<UserProgress> userProgressList) {
         return new TopicWithProgressDto(
-                topic.getId(),
                 topic.getName(),
                 topic.getDescription(),
                 topic.getSlug(),

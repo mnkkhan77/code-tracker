@@ -102,7 +102,7 @@ export function ProblemsDataTable({
         <TableBody>
           {problems.length > 0 ? (
             problems.map((problem, index) => (
-              <TableRow key={problem.id}>
+              <TableRow key={problem.title}>
                 <TableCell className="text-muted-foreground">
                   {index + 1}
                 </TableCell>

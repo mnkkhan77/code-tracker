@@ -7,7 +7,7 @@ import {
   UserProgress,
 } from "@/types/api";
 import apiClient from "./apiClient";
-import { createProgress } from "./progressAPI";
+import { upsertProgress as createProgress } from "./progressAPI";
 
 // --- Topics ---
 export const getTopics = async (): Promise<Topic[]> => {
@@ -17,14 +17,16 @@ export const getTopics = async (): Promise<Topic[]> => {
 
 export const getTopicBySlug = async (slug: string): Promise<Topic | null> => {
   try {
-    const res = await apiClient.get<Topic>(`/topics/slug/${slug}`);
+    const res = await apiClient.get<Topic>(
+      `/topics/slug/${slug}/with-progress`
+    );
     return res.data;
   } catch (e: any) {
     if (e?.response?.status === 404) return null;
     throw e;
   }
 };
-// In your problemsAPI or frontend service
+
 export async function getTopicBySlugWithProgress(slug: string) {
   const response = await apiClient.get(
     `/api/topics/slug/${slug}/with-progress`
@@ -52,6 +54,11 @@ export const deleteTopic = async (id: string): Promise<void> => {
 // --- Problems ---
 export const getProblems = async (): Promise<Problem[]> => {
   const res = await apiClient.get<Problem[]>("/problems");
+  return res.data;
+};
+
+export const getProblemsWithProgress = async (): Promise<Problem[]> => {
+  const res = await apiClient.get<Problem[]>("/problems/with-progress");
   return res.data;
 };
 
@@ -97,7 +104,9 @@ export const getTopicPageData = async (
   problems: Problem[];
   progressByProblemId: Record<string, UserProgress> | null;
 }> => {
-  const topic = await getTopicBySlug(slug);
+  const topic = userId
+    ? await getTopicBySlugWithProgress(slug)
+    : await getTopicBySlug(slug);
   if (!topic) return { topic: null, problems: [], progressByProblemId: null };
 
   const problems = await getProblemsByTopic(topic.id);

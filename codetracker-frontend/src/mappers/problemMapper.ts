@@ -1,29 +1,30 @@
 // src/mappers/problemMapper.ts
-import { Problem } from "@/types/api";
+import { Problem, ProgressStatus } from "@/types/api";
 
-// src/mappers/problemMapper.ts
 export type ProblemModel = Problem & {
   displayDifficulty: "Easy" | "Medium" | "Hard";
-  status: "not_started" | "in_progress" | "completed"; // Add status
+  status: ProgressStatus;
   bestTime: number | null; // Add bestTime
 };
 
-export function mapProblemDtoToModel(dto: any): ProblemModel {
-  const displayDifficulty =
-    dto.difficulty === "easy" || dto.difficulty === "EASY"
-      ? "Easy"
-      : dto.difficulty === "medium" || dto.difficulty === "MEDIUM"
-        ? "Medium"
-        : "Hard";
-
-  return {
-    ...dto,
-    displayDifficulty,
-    status: dto.status || "not_started", // Handle status
-    bestTime: dto.bestTime || null, // Handle bestTime
-  };
+function mapDifficulty(difficulty: string): "Easy" | "Medium" | "Hard" {
+  switch (difficulty) {
+    case "easy":
+    case "EASY":
+      return "Easy";
+    case "hard":
+    case "HARD":
+      return "Hard";
+    default:
+      return "Medium";
+  }
 }
 
-export function mapProblemsDtoToModel(dtos: Problem[]): ProblemModel[] {
-  return dtos.map(mapProblemDtoToModel);
+export function mapProblemsDtoToModel(dto: Problem[]): ProblemModel[] {
+  return dto.map((p) => ({
+    ...p,
+    displayDifficulty: mapDifficulty(p.difficulty),
+    status: (p.status as ProgressStatus) ?? "not_started",
+    bestTime: p.bestTime ?? null,
+  }));
 }

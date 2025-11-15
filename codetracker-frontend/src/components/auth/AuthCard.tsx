@@ -46,7 +46,6 @@ export function AuthCard({ onAuthSuccess }: AuthCardProps) {
       setStep({ email: formData.get("email") as string });
       setIsLoading(false);
     } catch (error) {
-      console.error("Email sign-in error:", error);
       setError(
         error instanceof Error
           ? error.message
@@ -65,16 +64,12 @@ export function AuthCard({ onAuthSuccess }: AuthCardProps) {
       // await signIn("email-otp", formData);
       await signIn();
 
-      console.log("signed in");
-
       if (onAuthSuccess) {
         onAuthSuccess();
       }
 
       navigate(searchParams.get("redirect") || "/dashboard");
     } catch (error) {
-      console.error("OTP verification error:", error);
-
       setError("The verification code you entered is incorrect.");
       setIsLoading(false);
 

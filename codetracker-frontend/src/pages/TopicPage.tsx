@@ -41,7 +41,6 @@ export default function TopicPage() {
   if (!topic) {
     return <div className="text-center py-12">Topic not found.</div>;
   }
-  console.log("📦 final problems passed to table", problems);
 
   return (
     <div className="space-y-6">

@@ -2,9 +2,12 @@ package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
-import com.codetracker.codetracker_backend.entity.Attempt;
+import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.User;
+import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.AttemptRepository;
+import com.codetracker.codetracker_backend.repository.ProblemRepository;
+import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ProfileService;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +24,20 @@ public class ProfileServiceImpl implements ProfileService {
     private final UserRepository userRepository;
     private final AttemptRepository attemptRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProblemRepository problemRepository;
+    private final UserProgressRepository userProgressRepository;
 
-    @Override
-    public User getMyProfile(UUID userId) {
-        return userRepository.findById(userId)
+    public UserDto getMyProfile(UUID userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        return new UserDto(user.getName(), user.getBio(), user.getEmail(), null);  // Set password as null for security reasons
     }
 
     @Override
-    public User updateMyProfile(UUID userId, UserDto request) {
-        User user = getMyProfile(userId);
+    public UserDto updateMyProfile(UUID userId, UserDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         if (request.getName() != null) user.setName(request.getName());
         if (request.getBio() != null) user.setBio(request.getBio());
@@ -38,33 +45,32 @@ public class ProfileServiceImpl implements ProfileService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+
+        return new UserDto(updated.getName(), updated.getBio(), updated.getEmail(), null);
     }
 
     @Override
-    public UserStatsDto getMyStats(UUID userId) {
-        List<Attempt> attempts = attemptRepository.findByUserProgress_User_Id(userId);
+    public UserStatsDto getUserStats(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        long successful = attempts.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getSuccessful()))
-                .count();
+        List<Problem> allProblems = problemRepository.findAll();
+        List<UserProgress> progressList = userProgressRepository.findByUserId(userId);
 
-        long failed = attempts.stream()
-                .filter(a -> Boolean.FALSE.equals(a.getSuccessful()))
-                .count();
+        long totalProblems = allProblems.size();
+        long completed = progressList.stream().filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus())).count();
+        long inProgress = progressList.stream().filter(p -> "IN_PROGRESS".equalsIgnoreCase(p.getStatus())).count();
+        long notStarted = totalProblems - completed - inProgress;
 
-        long totalProblemsSolved = attempts.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getSuccessful()))
-                .map(a -> a.getUserProgress().getProblem().getId())
-                .distinct()
-                .count();
+        long totalTimeSpent = progressList.stream()
+                .mapToLong(p -> p.getBestTime() != null ? p.getBestTime() : 0L)
+                .sum();
 
-        double avgTime = attempts.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getSuccessful()) && a.getDuration() != null)
-                .mapToInt(a -> a.getDuration())
-                .average()
-                .orElse(0.0);
+        int progressPercentage = totalProblems > 0
+                ? (int) Math.round((completed * 100.0) / totalProblems)
+                : 0;
 
-        return new UserStatsDto(totalProblemsSolved, successful, failed, avgTime);
+        return new UserStatsDto(totalProblems, completed, inProgress, notStarted, totalTimeSpent, progressPercentage);
     }
 }

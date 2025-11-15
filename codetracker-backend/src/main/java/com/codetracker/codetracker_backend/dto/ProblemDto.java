@@ -4,13 +4,10 @@ import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.Tag;
 
 import java.util.List;
-import java.util.UUID;
 
 public record ProblemDto(
-        UUID id,
         String title,
         String difficulty,
-        UUID topicId,
         String topicName,
         String slug,
         List<ExternalUrlDto> externalUrls,
@@ -27,10 +24,8 @@ public record ProblemDto(
                 .toList();
 
         return new ProblemDto(
-                problem.getId(),
                 problem.getTitle(),
                 problem.getDifficulty(),
-                problem.getTopic() != null ? problem.getTopic().getId() : null,
                 problem.getTopic() != null ? problem.getTopic().getName() : null,
                 problem.getSlug(),
                 urls,

@@ -20,6 +20,8 @@ public interface UserService {
     User updateUser(UUID userId, UserDto updatedUser);
 
     void deleteUser(UUID userId);
+
+    boolean isAdmin(UUID userId);
 }
 
 

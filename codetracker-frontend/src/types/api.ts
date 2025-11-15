@@ -19,9 +19,13 @@ export interface User {
 }
 
 export interface UserStatsDto {
-  problemsSolved: number;
-  currentStreak: number;
-  totalSubmissions: number;
+  totalProblems: number;
+  completed: number;
+  inProgress: number;
+  notStarted: number;
+  progressPercentage: number;
+  totalTimeSpent: number;
+  upcomingReviews?: any[]; // TODO: refine type
 }
 
 // --- Topics & Problems ---
@@ -64,7 +68,6 @@ export interface UserProgress {
 }
 
 export interface CreateProgressDto {
-  userId: string;
   problemId: string;
   status?: ProgressStatus;
   bestTime?: number;

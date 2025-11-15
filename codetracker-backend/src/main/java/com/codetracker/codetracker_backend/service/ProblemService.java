@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.service;
 
 import com.codetracker.codetracker_backend.dto.ProblemDto;
+import com.codetracker.codetracker_backend.dto.ProblemWithProgressDto;
 import com.codetracker.codetracker_backend.entity.Problem;
 
 import java.util.List;
@@ -15,6 +16,9 @@ public interface ProblemService {
     List<Problem> getProblemsByUser(UUID createdBy);
     Problem updateProblem(UUID problemId, Problem updatedProblem);
     void deleteProblem(UUID problemId);
+
+    List<ProblemWithProgressDto> getProblemsWithUserProgress(UUID userId);
+    Optional<Problem> getProblemEntityById(UUID id);
 }
 
 

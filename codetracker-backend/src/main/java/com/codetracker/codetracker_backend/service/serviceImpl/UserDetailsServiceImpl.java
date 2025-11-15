@@ -29,5 +29,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .roles(user.getRole().name()) // Ensure role mapping
                 .build();
     }
-
 }

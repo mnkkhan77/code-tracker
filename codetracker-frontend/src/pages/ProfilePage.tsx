@@ -10,6 +10,7 @@ import { useProfilePage, UserProfile } from "@/hooks/useProfilePage";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useDashboardStats } from "../hooks/useDashboardStats";
 
 export default function ProfilePage() {
   const { profile, loading, updateProfile } = useProfilePage();
@@ -18,6 +19,8 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState<
     Partial<Record<keyof UserProfile, string>>
   >({});
+
+  const { userStats } = useDashboardStats();
 
   useEffect(() => {
     if (profile) {
@@ -213,7 +216,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="bg-muted/50 rounded-lg p-4">
                         <div className="text-2xl font-bold text-primary">
-                          {profile.problemsSolved || 0}
+                          {userStats?.completed || 0}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Problems Solved
@@ -221,28 +224,28 @@ export default function ProfilePage() {
                       </div>
                       <div className="bg-muted/50 rounded-lg p-4">
                         <div className="text-2xl font-bold text-primary">
-                          {profile.currentStreak || 0}
+                          {userStats?.inProgress || 0}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          Current Streak
+                          In Progress
                         </div>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
+                      {/* <div className="bg-muted/50 rounded-lg p-4">
                         <div className="text-2xl font-bold text-primary">
                           {profile.totalSubmissions || 0}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Total Submissions
                         </div>
-                      </div>
-                      <div className="bg-muted/50 rounded-lg p-4">
+                      </div> */}
+                      {/* <div className="bg-muted/50 rounded-lg p-4">
                         <div className="text-2xl font-bold text-primary">
                           {profile.rank || "Unranked"}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Global Rank
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>

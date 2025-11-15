@@ -2,6 +2,7 @@ package com.codetracker.codetracker_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "user_progress")
 @Data
+@NoArgsConstructor
 public class UserProgress {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,4 +37,9 @@ public class UserProgress {
 
     @OneToMany(mappedBy = "userProgress", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attempt> attempts = new ArrayList<>();
+
+    public UserProgress(User user, Problem problem) {
+        this.user = user;
+        this.problem = problem;
+    }
 }

@@ -3,11 +3,9 @@ package com.codetracker.codetracker_backend.dto;
 import com.codetracker.codetracker_backend.entity.Topic;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record TopicDto(
-        UUID id,
         String name,
         String description,
         String slug,
@@ -15,7 +13,6 @@ public record TopicDto(
 ) {
     public static TopicDto toDto(Topic topic) {
         return new TopicDto(
-                topic.getId(),
                 topic.getName(),
                 topic.getDescription(),
                 topic.getSlug(),

@@ -26,9 +26,6 @@ export function useTopicPageData(slug: string) {
       } = await problemsService.getTopicPageData(slug, user?.id);
 
       setTopic(currentTopic);
-
-      // The difficulty from the backend is uppercase, but filters expect lowercase.
-      // This should ideally be in the mapper, but this is a safe place to correct it.
       const correctedProblems = (problemsData || []).map((p) => ({
         ...p,
         difficulty: (p.difficulty as string).toLowerCase() as Difficulty,
@@ -58,26 +55,9 @@ export function useTopicPageData(slug: string) {
       userProgress.map((p) => [p.problemId, p])
     );
 
-    return problems.map((problem) => {
-      const progress = progressByProblemId.get(problem.id);
-      return {
-        ...problem,
-        status: progress ? progress.status : ("not_started" as const),
-        bestTime: progress ? progress.bestTime : null,
-      };
-    });
+    return problems.map((problem) => ({ ...problem }));
   }, [topic, problems, userProgress]);
 
-  // --------------------------------
-  useEffect(() => {
-    console.log("🔥 userProgress updated", userProgress);
-  }, [userProgress]);
-
-  useEffect(() => {
-    console.log("🧠 problemsForTopic recomputed", problemsForTopic);
-  }, [problemsForTopic]);
-
-  // ------------------------------
   const {
     filteredProblems,
     statusFilter,
@@ -106,15 +86,15 @@ export function useTopicPageData(slug: string) {
       try {
         let updatedProgress: UserProgress;
         if (progressToUpdate) {
-          updatedProgress = await progressService.updateProgress(
-            progressToUpdate.id,
+          updatedProgress = await progressService.upsertProgress(
+            // progressToUpdate.id,
             {
               ...progressToUpdate,
               status,
             }
           );
         } else {
-          updatedProgress = await progressService.createProgress({
+          updatedProgress = await progressService.upsertProgress({
             userId: user.id,
             problemId,
             status,
@@ -134,6 +114,9 @@ export function useTopicPageData(slug: string) {
             return [...currentProgress, updatedProgress];
           }
         });
+        setProblems((prev) =>
+          prev.map((p) => (p.id === problemId ? { ...p, status } : p))
+        );
       } catch (error) {
         toast.error("Failed to update status.");
       }
@@ -151,15 +134,15 @@ export function useTopicPageData(slug: string) {
       try {
         let updatedProgress: UserProgress;
         if (progressToUpdate) {
-          updatedProgress = await progressService.updateProgress(
-            progressToUpdate.id,
+          updatedProgress = await progressService.upsertProgress(
+            // progressToUpdate.id,
             {
               ...progressToUpdate,
               bestTime,
             }
           );
         } else {
-          updatedProgress = await progressService.createProgress({
+          updatedProgress = await progressService.upsertProgress({
             userId: user.id,
             problemId,
             bestTime,
@@ -180,6 +163,9 @@ export function useTopicPageData(slug: string) {
             return [...currentProgress, updatedProgress];
           }
         });
+        setProblems((prev) =>
+          prev.map((p) => (p.id === problemId ? { ...p, bestTime } : p))
+        );
       } catch (error) {
         toast.error("Failed to update best time.");
       }

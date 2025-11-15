@@ -17,7 +17,7 @@ export function useProfilePage() {
     }
     setLoading(true);
     try {
-      const userProfile = await getUserProfile(authUser.id);
+      const userProfile = await getUserProfile();
       setProfile(userProfile);
     } catch (error) {
       toast.error("Failed to load profile.");
@@ -35,7 +35,7 @@ export function useProfilePage() {
       if (!profile) return;
       setLoading(true);
       try {
-        const updatedProfile = await updateUserProfile(profile.id, updates);
+        const updatedProfile = await updateUserProfile(updates);
         setProfile(updatedProfile);
         toast.success("Profile updated successfully!");
       } catch (error) {

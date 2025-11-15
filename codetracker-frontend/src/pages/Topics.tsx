@@ -47,7 +47,7 @@ function TopicsContent() {
         >
           {topicsWithStats.map((topic) => (
             <motion.div
-              key={topic.id}
+              key={topic.name}
               variants={{
                 hidden: { y: 20, opacity: 0 },
                 visible: { y: 0, opacity: 1 },

@@ -41,7 +41,6 @@ public class TopicController {
             @PathVariable String slug,
             Authentication auth) {
 
-        // Get current user ID from authentication
         UUID userId = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
@@ -62,5 +61,13 @@ public class TopicController {
     @DeleteMapping("/{id}")
     public void deleteTopic(@PathVariable UUID id) {
         topicService.deleteTopic(id);
+    }
+
+    @GetMapping("/with-progress")
+    public ResponseEntity<List<TopicWithProgressDto>> getTopicsWithProgress(Authentication auth) {
+        UUID userId = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId();
+        return ResponseEntity.ok(topicService.getTopicsWithProgress(userId));
     }
 }

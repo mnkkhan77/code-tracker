@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import com.codetracker.codetracker_backend.dto.UserDto;
+import com.codetracker.codetracker_backend.entity.Role;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.UserService;
@@ -63,5 +64,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(UUID userId) {
         userRepository.deleteById(userId);
+    }
+
+    @Override
+    public boolean isAdmin(UUID userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getRole() == Role.ADMIN)
+                .orElse(false);
     }
 }

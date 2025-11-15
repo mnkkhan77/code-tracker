@@ -9,12 +9,21 @@ export async function getAllProblems(): Promise<ProblemModel[]> {
   return mapProblemsDtoToModel(raw);
 }
 
+export async function getProblemsWithProgress(): Promise<ProblemModel[]> {
+  const raw = await problemsAPI.getProblemsWithProgress();
+  return mapProblemsDtoToModel(raw);
+}
+
 export async function getTopics(): Promise<Topic[]> {
   return problemsAPI.getTopics();
 }
 
 export async function getTopicBySlug(slug: string) {
   return problemsAPI.getTopicBySlug(slug);
+}
+
+export async function getTopicBySlugWithProgress(slug: string) {
+  return problemsAPI.getTopicBySlugWithProgress(slug);
 }
 
 export async function getTopicProblems(
@@ -32,7 +41,9 @@ export async function getTopicPageData(
   problems: ProblemModel[];
   progressByProblemId: Record<string, UserProgress> | null;
 }> {
-  const topic = await problemsAPI.getTopicBySlug(slug);
+  const topic = userId
+    ? await problemsAPI.getTopicBySlugWithProgress(slug)
+    : await problemsAPI.getTopicBySlug(slug);
   if (!topic) {
     return { topic: null, problems: [], progressByProblemId: null };
   }

@@ -1,13 +1,12 @@
 package com.codetracker.codetracker_backend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.codetracker.codetracker_backend.entity.ExternalUrl;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class ExternalUrlDto {
-    private String platform;
-    private String url;
+public record ExternalUrlDto(
+        String platform,
+        String url
+) {
+    public static ExternalUrlDto fromEntity(ExternalUrl entity) {
+        return new ExternalUrlDto(entity.getPlatform(), entity.getUrl());
+    }
 }

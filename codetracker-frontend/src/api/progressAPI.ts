@@ -3,16 +3,17 @@ import {
   CreateProgressDto,
   TopicWithStats,
   UserProgress,
+  UserStatsDto,
 } from "@/types/api";
 import apiClient from "./apiClient";
 
-export const getUserProgress = async (): Promise<UserProgress[]> => {
-  const res = await apiClient.get<UserProgress[]>("/progress/me");
+export const getUserStats = async (): Promise<UserStatsDto> => {
+  const res = await apiClient.get<UserStatsDto>("/progress/me");
   return res.data;
 };
 
 export const getTopicsWithStats = async (): Promise<TopicWithStats[]> => {
-  const res = await apiClient.get<TopicWithStats[]>(`/progress/me`);
+  const res = await apiClient.get<TopicWithStats[]>(`/topics/with-progress`);
   return res.data;
 };
 
@@ -25,18 +26,10 @@ export const getProgressByProblem = async (
   return res.data;
 };
 
-export const createProgress = async (
+export const upsertProgress = async (
   dto: CreateProgressDto
 ): Promise<UserProgress> => {
   const res = await apiClient.post<UserProgress>("/progress", dto);
-  return res.data;
-};
-
-export const updateProgress = async (
-  id: string,
-  progress: UserProgress
-): Promise<UserProgress> => {
-  const res = await apiClient.put<UserProgress>(`/progress/${id}`, progress);
   return res.data;
 };
 
@@ -45,6 +38,6 @@ export const addAttempt = async (dto: AddAttemptDto) => {
   return res.data;
 };
 
-export const deleteProgress = async (id: string): Promise<void> => {
-  await apiClient.delete(`/progress/${id}`);
+export const deleteProgress = async (problemId: string): Promise<void> => {
+  await apiClient.delete(`/progress/problem/${problemId}`);
 };

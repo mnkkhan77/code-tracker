@@ -8,8 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserStatsDto {
-    private long totalProblemsSolved;
-    private long successfulAttempts;
-    private long failedAttempts;
-    private double averageTimeTaken; // seconds
+    private long totalProblems;
+    private long completed;
+    private long inProgress;
+    private long notStarted;
+    private double totalTimeSpent;
+    private int progressPercentage;
 }
