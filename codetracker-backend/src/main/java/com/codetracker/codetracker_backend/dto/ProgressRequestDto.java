@@ -1,10 +1,8 @@
 package com.codetracker.codetracker_backend.dto;
 
-import lombok.Data;
-
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
+
+import lombok.Data;
 
 @Data
 public class ProgressRequestDto {

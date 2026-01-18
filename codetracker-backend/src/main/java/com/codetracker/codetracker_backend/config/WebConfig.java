@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -8,9 +9,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**") //  API base path
-                .allowedOrigins("http://localhost:5173") // The origin of frontend app
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOriginPatterns("*") // Allow all origins for development
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);

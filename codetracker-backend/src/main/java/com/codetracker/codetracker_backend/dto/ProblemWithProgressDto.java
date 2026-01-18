@@ -1,13 +1,12 @@
 package com.codetracker.codetracker_backend.dto;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.Tag;
 import com.codetracker.codetracker_backend.entity.UserProgress;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public record ProblemWithProgressDto(
         String title,

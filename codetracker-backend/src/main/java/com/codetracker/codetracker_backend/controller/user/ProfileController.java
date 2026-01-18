@@ -1,16 +1,20 @@
 package com.codetracker.codetracker_backend.controller.user;
 
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ProfileService;
-import com.codetracker.codetracker_backend.service.UserProgressService;
-import com.codetracker.codetracker_backend.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -19,9 +23,6 @@ public class ProfileController {
 
     private final ProfileService profileService;
     private final UserRepository userRepository;
-    private final UserService userService;
-    private final UserProgressService userProgressService;
-
     // Resolve current user's UUID using their email from Authentication
     private UUID currentUserId(Authentication auth) {
         String email = auth.getName();

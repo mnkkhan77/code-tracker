@@ -1,33 +1,34 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.entity.UserProgress;
-import com.codetracker.codetracker_backend.repository.AttemptRepository;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ProfileService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
 
     private final UserRepository userRepository;
-    private final AttemptRepository attemptRepository;
     private final PasswordEncoder passwordEncoder;
     private final ProblemRepository problemRepository;
     private final UserProgressRepository userProgressRepository;
 
-    public UserDto getMyProfile(UUID userId) {
+    public UserDto getMyProfile(@NonNull UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
@@ -35,8 +36,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public UserDto updateMyProfile(UUID userId, UserDto request) {
-        User user = userRepository.findById(userId)
+    public UserDto updateMyProfile(@NonNull UUID userId, UserDto request) {
+        @NonNull User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         if (request.getName() != null) user.setName(request.getName());
@@ -51,8 +52,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public UserStatsDto getUserStats(UUID userId) {
-        User user = userRepository.findById(userId)
+    public UserStatsDto getUserStats(@NonNull UUID userId) {
+        userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Problem> allProblems = problemRepository.findAll();

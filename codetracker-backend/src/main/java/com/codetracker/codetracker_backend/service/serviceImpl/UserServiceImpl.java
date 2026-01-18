@@ -1,17 +1,20 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.entity.Role;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.UserService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import jakarta.transaction.Transactional;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +24,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User createUser(User user) {
+    public User createUser(@NonNull User user) {
         try {
             User savedUser = userRepository.save(user);
             System.out.println("User saved: " + savedUser.getEmail());
@@ -40,7 +43,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserById(UUID userId) {
+    public Optional<User> getUserById(@NonNull UUID userId) {
         return userRepository.findById(userId);
     }
 
@@ -50,7 +53,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(UUID userId, UserDto updatedUser) {
+    public User updateUser(@NonNull UUID userId, UserDto updatedUser) {
         return userRepository.findById(userId)
                 .map(existing -> {
                     existing.setName(updatedUser.getName());
@@ -62,12 +65,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(UUID userId) {
+    public void deleteUser(@NonNull UUID userId) {
         userRepository.deleteById(userId);
     }
 
     @Override
-    public boolean isAdmin(UUID userId) {
+    public boolean isAdmin(@NonNull UUID userId) {
         return userRepository.findById(userId)
                 .map(user -> user.getRole() == Role.ADMIN)
                 .orElse(false);

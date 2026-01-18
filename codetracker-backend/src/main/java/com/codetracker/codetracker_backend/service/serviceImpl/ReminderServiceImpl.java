@@ -1,14 +1,17 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
-import com.codetracker.codetracker_backend.entity.Reminder;
-import com.codetracker.codetracker_backend.repository.ReminderRepository;
-import com.codetracker.codetracker_backend.service.ReminderService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.codetracker.codetracker_backend.entity.Reminder;
+import com.codetracker.codetracker_backend.repository.ReminderRepository;
+import com.codetracker.codetracker_backend.service.ReminderService;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class ReminderServiceImpl implements ReminderService {
         return reminderRepository.save(reminder);
     }
 
-    public Reminder updateReminder(UUID reminderId, int daysGap) {
+    public Reminder updateReminder(@NonNull UUID reminderId, int daysGap) {
         Reminder reminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new RuntimeException("Reminder not found"));
         reminder.setNextReminderDate(LocalDate.now().plusDays(daysGap));

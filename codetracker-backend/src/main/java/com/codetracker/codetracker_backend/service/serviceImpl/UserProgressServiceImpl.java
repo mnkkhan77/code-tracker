@@ -1,9 +1,14 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.codetracker.codetracker_backend.dto.ProgressRequestDto;
 import com.codetracker.codetracker_backend.dto.ProgressResponseDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
-import com.codetracker.codetracker_backend.entity.Attempt;
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.entity.UserProgress;
@@ -11,12 +16,9 @@ import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.UserProgressService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class UserProgressServiceImpl implements UserProgressService {
     }
 
     @Override
-    public Optional<UserProgress> getProgressById(UUID progressId) {
+    public Optional<UserProgress> getProgressById(@NonNull UUID progressId) {
         return userProgressRepository.findById(progressId);
     }
 
@@ -49,7 +51,7 @@ public class UserProgressServiceImpl implements UserProgressService {
     }
 
     @Override
-    public void deleteProgress(UUID progressId) {
+    public void deleteProgress(@NonNull UUID progressId) {
         userProgressRepository.deleteById(progressId);
     }
 
@@ -75,8 +77,8 @@ public class UserProgressServiceImpl implements UserProgressService {
     }
 
     @Override
-    public UserStatsDto getUserStats(UUID userId) {
-        User user = userRepository.findById(userId)
+    public UserStatsDto getUserStats(@NonNull UUID userId) {
+        userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Problem> allProblems = problemRepository.findAll();

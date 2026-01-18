@@ -1,10 +1,9 @@
 package com.codetracker.codetracker_backend.dto;
 
-import com.codetracker.codetracker_backend.entity.UserProgress;
-
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.codetracker.codetracker_backend.entity.UserProgress;
 
 public record TopicWithProgressDto(
         String name,

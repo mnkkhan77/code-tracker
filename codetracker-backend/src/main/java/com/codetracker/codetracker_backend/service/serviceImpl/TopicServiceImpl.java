@@ -1,5 +1,11 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.codetracker.codetracker_backend.dto.TopicDto;
 import com.codetracker.codetracker_backend.dto.TopicWithProgressDto;
 import com.codetracker.codetracker_backend.entity.Topic;
@@ -7,13 +13,10 @@ import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.TopicRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.service.TopicService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class TopicServiceImpl implements TopicService {
     private final UserProgressRepository userProgressRepository;
 
     @Override
-    public Topic createTopic(Topic topic) {
+    public Topic createTopic(@NonNull Topic topic) {
         return topicRepository.save(topic);
     }
 
@@ -36,7 +39,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public TopicDto getTopicById(UUID id) {
+    public TopicDto getTopicById(@NonNull UUID id) {
         return topicRepository.findById(id)
                 .map(TopicDto::toDto)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
@@ -51,7 +54,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public Topic updateTopic(UUID topicId, Topic updatedTopic) {
+    public Topic updateTopic(@NonNull UUID topicId, Topic updatedTopic) {
         return topicRepository.findById(topicId)
                 .map(existing -> {
                     existing.setName(updatedTopic.getName());
@@ -63,7 +66,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public void deleteTopic(UUID topicId) {
+    public void deleteTopic(@NonNull UUID topicId) {
         topicRepository.deleteById(topicId);
     }
 

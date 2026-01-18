@@ -1,15 +1,18 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
-import com.codetracker.codetracker_backend.entity.Attempt;
-import com.codetracker.codetracker_backend.repository.AttemptRepository;
-import com.codetracker.codetracker_backend.service.AttemptService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.codetracker.codetracker_backend.entity.Attempt;
+import com.codetracker.codetracker_backend.repository.AttemptRepository;
+import com.codetracker.codetracker_backend.service.AttemptService;
+
+import jakarta.transaction.Transactional;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +22,12 @@ public class AttemptServiceImpl implements AttemptService {
     private final AttemptRepository attemptRepository;
 
     @Override
-    public Attempt createAttempt(Attempt attempt) {
+    public Attempt createAttempt(@NonNull Attempt attempt) {
         return attemptRepository.save(attempt);
     }
 
     @Override
-    public Optional<Attempt> getAttemptById(UUID attemptId) {
+    public Optional<Attempt> getAttemptById(@NonNull UUID attemptId) {
         return attemptRepository.findById(attemptId);
     }
 
@@ -39,7 +42,7 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
-    public Attempt updateAttempt(UUID attemptId, Attempt updated) {
+    public Attempt updateAttempt(@NonNull UUID attemptId, Attempt updated) {
         return attemptRepository.findById(attemptId)
                 .map(existing -> {
                     existing.setDuration(updated.getDuration());
@@ -52,7 +55,7 @@ public class AttemptServiceImpl implements AttemptService {
 
 
     @Override
-    public void deleteAttempt(UUID attemptId) {
+    public void deleteAttempt(@NonNull UUID attemptId) {
         attemptRepository.deleteById(attemptId);
     }
 }

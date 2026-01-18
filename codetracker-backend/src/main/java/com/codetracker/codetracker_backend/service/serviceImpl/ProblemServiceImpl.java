@@ -1,5 +1,13 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.codetracker.codetracker_backend.dto.ExternalUrlDto;
 import com.codetracker.codetracker_backend.dto.ProblemDto;
 import com.codetracker.codetracker_backend.dto.ProblemWithProgressDto;
@@ -9,16 +17,10 @@ import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.service.ProblemService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class ProblemServiceImpl implements ProblemService {
     private final UserProgressRepository userProgressRepository;
 
     @Override
-    public Problem createProblem(Problem problem) {
+    public Problem createProblem(@NonNull Problem problem) {
         return problemRepository.save(problem);
     }
 
@@ -41,7 +43,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public ProblemDto getProblemById(UUID id) {
+    public ProblemDto getProblemById(@NonNull UUID id) {
         return problemRepository.findById(id)
                 .map(ProblemDto::toDto)
                 .orElseThrow(() -> new RuntimeException("Problem not found"));
@@ -60,7 +62,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Problem updateProblem(UUID problemId, Problem updatedProblem) {
+    public Problem updateProblem(@NonNull UUID problemId, Problem updatedProblem) {
         return problemRepository.findById(problemId)
                 .map(existing -> {
                     existing.setTitle(updatedProblem.getTitle());
@@ -73,7 +75,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public void deleteProblem(UUID problemId) {
+    public void deleteProblem(@NonNull UUID problemId) {
         problemRepository.deleteById(problemId);
     }
 
@@ -121,7 +123,7 @@ public class ProblemServiceImpl implements ProblemService {
 
 
     @Override
-    public Optional<Problem> getProblemEntityById(UUID id) {
+    public Optional<Problem> getProblemEntityById(@NonNull UUID id) {
         return problemRepository.findById(id);
     }
 }

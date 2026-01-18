@@ -1,16 +1,14 @@
 package com.codetracker.codetracker_backend.dto;
 
-import com.codetracker.codetracker_backend.entity.Attempt;
+import java.util.UUID;
+
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.entity.UserProgress;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
