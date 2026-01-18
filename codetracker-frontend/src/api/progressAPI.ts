@@ -8,36 +8,60 @@ import {
 import apiClient from "./apiClient";
 
 export const getUserStats = async (): Promise<UserStatsDto> => {
-  const res = await apiClient.get<UserStatsDto>("/progress/me");
-  return res.data;
+  try {
+    const res = await apiClient.get<UserStatsDto>("/progress/me");
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const getTopicsWithStats = async (): Promise<TopicWithStats[]> => {
-  const res = await apiClient.get<TopicWithStats[]>(`/topics/with-progress`);
-  return res.data;
+  try {
+    const res = await apiClient.get<TopicWithStats[]>(`/topics/with-progress`);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const getProgressByProblem = async (
-  problemId: string
+  problemId: string,
 ): Promise<UserProgress[]> => {
-  const res = await apiClient.get<UserProgress[]>(
-    `/progress/problem/${problemId}`
-  );
-  return res.data;
+  try {
+    const res = await apiClient.get<UserProgress[]>(
+      `/progress/problem/${problemId}`,
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const upsertProgress = async (
-  dto: CreateProgressDto
+  dto: CreateProgressDto,
 ): Promise<UserProgress> => {
-  const res = await apiClient.post<UserProgress>("/progress", dto);
-  return res.data;
+  try {
+    const res = await apiClient.post<UserProgress>("/progress", dto);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const addAttempt = async (dto: AddAttemptDto) => {
-  const res = await apiClient.post("/attempts", dto);
-  return res.data;
+  try {
+    const res = await apiClient.post("/attempts", dto);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const deleteProgress = async (problemId: string): Promise<void> => {
-  await apiClient.delete(`/progress/problem/${problemId}`);
+  try {
+    await apiClient.delete(`/progress/problem/${problemId}`);
+  } catch (error) {
+    throw error;
+  }
 };

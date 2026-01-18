@@ -17,22 +17,30 @@ import apiClient from "./apiClient";
 
 export const getRemindersForUser = async (
   days: number = 3,
-  entityType?: string
+  entityType?: string,
 ): Promise<Reminder[]> => {
-  const res = await apiClient.get<Reminder[]>("/reminders/me", {
-    params: { days, entityType },
-  });
-  return res.data;
+  try {
+    const res = await apiClient.get<Reminder[]>("/reminders/me", {
+      params: { days, entityType },
+    });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
  * Create a new reminder (backend infers user from auth token).
  */
 export const createReminderApi = async (
-  payload: Partial<Reminder>
+  payload: Partial<Reminder>,
 ): Promise<Reminder> => {
-  const res = await apiClient.post<Reminder>("/reminders", payload);
-  return res.data;
+  try {
+    const res = await apiClient.post<Reminder>("/reminders", payload);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
@@ -40,15 +48,23 @@ export const createReminderApi = async (
  */
 export const updateReminderApi = async (
   id: string,
-  payload: Partial<Reminder>
+  payload: Partial<Reminder>,
 ): Promise<Reminder> => {
-  const res = await apiClient.put<Reminder>(`/reminders/${id}`, payload);
-  return res.data;
+  try {
+    const res = await apiClient.put<Reminder>(`/reminders/${id}`, payload);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
  * Delete a reminder.
  */
 export const deleteReminderApi = async (id: string): Promise<void> => {
-  await apiClient.delete(`/reminders/${id}`);
+  try {
+    await apiClient.delete(`/reminders/${id}`);
+  } catch (error) {
+    throw error;
+  }
 };
