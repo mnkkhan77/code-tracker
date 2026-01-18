@@ -1,15 +1,18 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
-import com.codetracker.codetracker_backend.entity.Purchase;
-import com.codetracker.codetracker_backend.repository.PurchaseRepository;
-import com.codetracker.codetracker_backend.service.PurchaseService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.codetracker.codetracker_backend.entity.Purchase;
+import com.codetracker.codetracker_backend.repository.PurchaseRepository;
+import com.codetracker.codetracker_backend.service.PurchaseService;
+
+import jakarta.transaction.Transactional;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +22,12 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final PurchaseRepository purchaseRepository;
 
     @Override
-    public Purchase createPurchase(Purchase purchase) {
+    public Purchase createPurchase(@NonNull Purchase purchase) {
         return purchaseRepository.save(purchase);
     }
 
     @Override
-    public Optional<Purchase> getPurchaseById(UUID purchaseId) {
+    public Optional<Purchase> getPurchaseById(@NonNull UUID purchaseId) {
         return purchaseRepository.findById(purchaseId);
     }
 
@@ -34,7 +37,7 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public Purchase updatePurchase(UUID purchaseId, Purchase updated) {
+    public Purchase updatePurchase(@NonNull UUID purchaseId, Purchase updated) {
         return purchaseRepository.findById(purchaseId)
                 .map(existing -> {
                     existing.setAmount(updated.getAmount());
@@ -47,7 +50,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
 
     @Override
-    public void deletePurchase(UUID purchaseId) {
+    public void deletePurchase(@NonNull UUID purchaseId) {
         purchaseRepository.deleteById(purchaseId);
     }
 }
