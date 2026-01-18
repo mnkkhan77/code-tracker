@@ -1,5 +1,19 @@
 package com.codetracker.codetracker_backend.controller.user;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.codetracker.codetracker_backend.dto.ProgressRequestDto;
 import com.codetracker.codetracker_backend.dto.ProgressResponseDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
@@ -9,14 +23,9 @@ import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.service.ProblemService;
 import com.codetracker.codetracker_backend.service.UserProgressService;
 import com.codetracker.codetracker_backend.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/progress")
@@ -55,7 +64,7 @@ public class UserProgressController {
 
     @PostMapping
     public ProgressResponseDto upsertProgress(
-            @RequestBody ProgressRequestDto dto,
+            @Valid @RequestBody ProgressRequestDto dto,
             Authentication authentication) {
 
         String email = authentication.getName();
