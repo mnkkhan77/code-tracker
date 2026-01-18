@@ -49,7 +49,7 @@ export function ProblemsToolbar({
     setTagFilter(
       tagFilter.includes(tag)
         ? tagFilter.filter((t) => t !== tag)
-        : [...tagFilter, tag]
+        : [...tagFilter, tag],
     );
   };
 
@@ -96,12 +96,13 @@ export function ProblemsToolbar({
         </Select>
 
         {/* Tags Filter */}
-        <Popover>
+        <Popover modal={false}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
               className="w-full justify-between sm:w-[200px]"
+              type="button"
             >
               <span className="truncate">
                 {(tagFilter ?? []).length > 0
@@ -125,7 +126,7 @@ export function ProblemsToolbar({
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          tagFilter.includes(tag) ? "opacity-100" : "opacity-0"
+                          tagFilter.includes(tag) ? "opacity-100" : "opacity-0",
                         )}
                       />
                       {tag}

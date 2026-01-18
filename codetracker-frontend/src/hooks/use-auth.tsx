@@ -18,7 +18,7 @@ interface AuthContextType {
   signIn: (email: string, password_hash: string) => Promise<User | null>;
   signOut: () => Promise<void>;
   register: (
-    userData: Pick<User, "name" | "email"> & { password: string }
+    userData: Pick<User, "name" | "email"> & { password: string },
   ) => Promise<void>;
 }
 
@@ -59,16 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (
-    userData: Pick<User, "name" | "email"> & { password: string }
+    userData: Pick<User, "name" | "email"> & { password: string },
   ) => {
     try {
       await authService.register(userData);
-      // auto login after registration
-      // await authService.login(userData.email, userData.password);
-      // await checkUser();
       toast.success(`Welcome! Registration successful.`);
-    } catch (error) {
-      toast.error("Registration failed. Please try again.");
+    } catch (error: any) {
+      // Try to show backend error message if available (axios or fetch style)
+      let backendMsg = error?.error;
+      if (error?.response?.data?.error) {
+        backendMsg = error.response.data.error;
+      } else if (error?.data?.error) {
+        backendMsg = error.data.error;
+      } else if (error?.message) {
+        backendMsg = error.message;
+      }
+      toast.error(backendMsg || "Registration failed. Please try again.");
       throw error;
     }
   };

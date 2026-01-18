@@ -42,7 +42,7 @@ export default function ProblemsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProblem, setEditingProblem] = useState<Partial<Problem> | null>(
-    null
+    null,
   );
   const [problemToDelete, setProblemToDelete] = useState<string | null>(null);
 
@@ -118,40 +118,42 @@ export default function ProblemsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Problems
-        </h1>
-        {isAdmin && <Button onClick={openAddModal}>Add Problem</Button>}
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Problems
+          </h1>
+          {isAdmin && <Button onClick={openAddModal}>Add Problem</Button>}
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              All Problems ({(filteredProblems || []).length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProblemsToolbar
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              difficultyFilter={difficultyFilter}
+              setDifficultyFilter={setDifficultyFilter}
+              tagFilter={tagFilter}
+              setTagFilter={setTagFilter}
+              allTags={allTags}
+              problemsCount={(filteredProblems || []).length}
+              showStatusFilter={showStatusFeature}
+            />
+            <ProblemsDataTable
+              problems={filteredProblems || []}
+              onStatusChange={updateProblemStatus}
+              onBestTimeChange={updateProblemBestTime}
+              openEditModal={openEditModal}
+              setProblemToDelete={setProblemToDelete}
+            />
+          </CardContent>
+        </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            All Problems ({(filteredProblems || []).length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProblemsToolbar
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            difficultyFilter={difficultyFilter}
-            setDifficultyFilter={setDifficultyFilter}
-            tagFilter={tagFilter}
-            setTagFilter={setTagFilter}
-            allTags={allTags}
-            problemsCount={(filteredProblems || []).length}
-            showStatusFilter={showStatusFeature}
-          />
-          <ProblemsDataTable
-            problems={filteredProblems || []}
-            onStatusChange={updateProblemStatus}
-            onBestTimeChange={updateProblemBestTime}
-            openEditModal={openEditModal}
-            setProblemToDelete={setProblemToDelete}
-          />
-        </CardContent>
-      </Card>
       {isAdmin && (
         <>
           <ProblemFormModal
@@ -184,6 +186,6 @@ export default function ProblemsPage() {
           </AlertDialog>
         </>
       )}
-    </div>
+    </>
   );
 }
