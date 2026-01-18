@@ -13,6 +13,13 @@ target/
 .springBeans
 .sts4-cache
 
+### env files ###
+.env
+.env.local
+.env.*.local
+run.bat
+run.sh
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
