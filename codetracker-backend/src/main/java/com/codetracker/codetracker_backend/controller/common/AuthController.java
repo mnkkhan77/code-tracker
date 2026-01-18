@@ -20,6 +20,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (request.getEmail() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email must be provided"));
+        }
+        if (authService.userExists(request.getEmail())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "User with this email already exists"));
+        }
         User registeredUser = authService.register(request);
         return ResponseEntity.ok(Map.of(
                 "message", "User registered successfully",
@@ -33,6 +39,14 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
+
+        if (email == null || password == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email and password must be provided"));
+        }
+
+        if(!authService.userExists(email)) {
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        }
 
         String token = authService.login(email, password);
         return ResponseEntity.ok(Map.of(

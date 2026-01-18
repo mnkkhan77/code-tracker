@@ -1,13 +1,14 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.codetracker.codetracker_backend.dto.RegisterRequest;
 import com.codetracker.codetracker_backend.entity.Role;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.security.JwtUtil;
 import com.codetracker.codetracker_backend.service.AuthService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -54,5 +55,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+    }
+
+    @Override
+    public boolean userExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
     }
 }

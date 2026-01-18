@@ -7,4 +7,6 @@ public interface AuthService {
     User register(RegisterRequest request);
 
     String login(String email, String password);
+
+    boolean userExists(String email);
 }
