@@ -20,7 +20,7 @@ export const addUser = async (payload: Partial<User>): Promise<User> => {
 
 export const updateUser = async (
   id: string,
-  updates: Partial<User>
+  updates: Partial<User>,
 ): Promise<User> => {
   const res = await apiClient.put<User>(`/admin/users/${id}`, updates);
   return res.data;
@@ -32,42 +32,40 @@ export const deleteUser = async (id: string): Promise<void> => {
 
 //    -------------- admin access for user data --------------------
 export const getProblemsByUserId = async (
-  userId: string
+  userId: string,
 ): Promise<Problem[]> => {
   const res = await apiClient.get<Problem[]>(
-    `/admin/users/problems/user/${userId}`
+    `/admin/users/problems/user/${userId}`,
   );
   return res.data;
 };
 
 export const getPurchasesByUserId = async (
-  userId: string
+  userId: string,
 ): Promise<Purchase[]> => {
   const res = await apiClient.get<Purchase[]>(
-    `/admin/users/purchases/user/${userId}`
+    `/admin/users/purchases/user/${userId}`,
   );
   return res.data;
 };
 
 export const getAttemptsByUserId = async (
-  userId: string
+  userId: string,
 ): Promise<Attempt[]> => {
   const res = await apiClient.get<Attempt[]>(
-    `/admin/users/attempts/user/${userId}`
+    `/admin/users/attempts/user/${userId}`,
   );
   return res.data;
 };
 
 export const getProgressByUserId = async (
-  userId: string
+  userId: string,
 ): Promise<UserProgress[]> => {
   const res = await apiClient.get<UserProgress[]>(
-    `/admin/users/progress/user/${userId}`
+    `/admin/users/progress/user/${userId}`,
   );
   return res.data;
 };
-
-export type { Problem, User };
 
 // src/api/adminApi.ts
 export * from "./adminAPI";

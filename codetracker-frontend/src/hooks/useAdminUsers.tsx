@@ -37,15 +37,16 @@ export function useAdminUsers() {
     userData: Omit<
       User,
       "id" | "registrationDate" | "_creationTime" | "status" | "problemsSolved"
-    >
+    >,
   ) => {
     try {
       const newUser = await addUser(userData);
       setUsers((prev) => [newUser, ...prev]);
       toast.success("User added successfully!");
       return newUser;
-    } catch (err) {
-      const errorMessage = (err as Error).message || "Failed to add user.";
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.error || err?.message || "Failed to add user.";
       toast.error(errorMessage);
       throw err;
     }
@@ -56,13 +57,14 @@ export function useAdminUsers() {
       const updatedUser = await updateUser(userId, updates);
       if (updatedUser) {
         setUsers((prev) =>
-          prev.map((u) => (u.id === userId ? updatedUser : u))
+          prev.map((u) => (u.id === userId ? updatedUser : u)),
         );
         toast.success("User updated successfully!");
       }
       return updatedUser;
-    } catch (err) {
-      const errorMessage = (err as Error).message || "Failed to update user.";
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.error || err?.message || "Failed to update user.";
       toast.error(errorMessage);
       throw err;
     }
@@ -73,8 +75,9 @@ export function useAdminUsers() {
       await deleteUser(userId);
       setUsers((prev) => prev.filter((u) => u.id !== userId));
       toast.success("User deleted successfully!");
-    } catch (err) {
-      const errorMessage = (err as Error).message || "Failed to delete user.";
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.error || err?.message || "Failed to delete user.";
       toast.error(errorMessage);
     }
   };

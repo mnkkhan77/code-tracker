@@ -4,6 +4,7 @@ import { ProblemsToolbar } from "@/components/problems/ProblemsToolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { useTopicPageData } from "@/hooks/useTopicPageData";
+import type { ProblemModel } from "@/mappers/problemMapper";
 import { useParams } from "react-router-dom";
 
 export default function TopicPage() {
@@ -42,6 +43,7 @@ export default function TopicPage() {
     return <div className="text-center py-12">Topic not found.</div>;
   }
 
+  // Type assertion to ensure problems matches ProblemsDataTable's expected type
   return (
     <div className="space-y-6">
       <div>
@@ -60,7 +62,7 @@ export default function TopicPage() {
         showStatusFilter={!isAdmin}
       />
       <ProblemsDataTable
-        problems={problems}
+        problems={problems as ProblemModel[]}
         onStatusChange={updateProblemStatus}
         onBestTimeChange={updateProblemBestTime}
         openEditModal={() => {}}

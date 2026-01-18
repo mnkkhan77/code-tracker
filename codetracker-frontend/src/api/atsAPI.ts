@@ -4,20 +4,20 @@ import apiClient from "./apiClient";
 export const getUserCredits = async () => {
   try {
     const res = await apiClient.get("/ats/credits");
-    return res.data;
-  } catch (e) {
-    return { credits: 0 };
+    return res.data ?? { credits: 0 };
+  } catch (e: any) {
+    return { credits: 0, error: e?.message };
   }
 };
 
 export const purchaseCredits = async (
-  packageType: "small" | "medium" | "large"
+  packageType: "small" | "medium" | "large",
 ) => {
   try {
     const res = await apiClient.post("/ats/purchase", { packageType });
-    return res.data;
-  } catch (e) {
-    return { success: false };
+    return res.data ?? { success: false };
+  } catch (e: any) {
+    return { success: false, error: e?.message };
   }
 };
 
@@ -28,18 +28,22 @@ export const uploadResumeForAnalysis = async (file: File) => {
     const res = await apiClient.post("/ats/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data;
-  } catch (e) {
-    // fallback simulation
-    return { success: false, error: "Unable to reach ATS service" };
+    return (
+      res.data ?? { success: false, error: "No response from ATS service" }
+    );
+  } catch (e: any) {
+    return {
+      success: false,
+      error: e?.message || "Unable to reach ATS service",
+    };
   }
 };
 
 export const getUserResumes = async () => {
   try {
     const res = await apiClient.get("/ats/resumes");
-    return res.data;
-  } catch (e) {
+    return res.data ?? [];
+  } catch (e: any) {
     return [];
   }
 };

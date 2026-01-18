@@ -34,25 +34,24 @@ export function useATSResumeChecker() {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!loading) setLoading(true);
+    setLoading(true); // Always set loading to true when fetching
     try {
       const [creditsData, resumesData] = await Promise.all([
         getUserCredits(),
         getUserResumes(),
       ]);
-      setCredits(creditsData.credits);
-      setResumes(resumesData);
-    } catch (error) {
-      toast.error("Failed to load mock data.");
+      setCredits(creditsData.credits ?? 0); // Fallback to 0 if undefined
+      setResumes(resumesData ?? []); // Fallback to empty array if undefined
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load data.");
     } finally {
       setLoading(false);
     }
-  }, [loading]);
+  }, []);
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchData]);
 
   const handlePurchaseCredits = useCallback(
     async (packageType: "small" | "medium" | "large") => {
@@ -66,7 +65,7 @@ export function useATSResumeChecker() {
             large: { credits: 35, price: 20 },
           };
           toast.success(
-            `Successfully purchased ${packages[packageType].credits} credits!`
+            `Successfully purchased ${packages[packageType].credits} credits!`,
           );
           return true;
         }
@@ -77,7 +76,7 @@ export function useATSResumeChecker() {
         return false;
       }
     },
-    []
+    [],
   );
 
   const uploadResume = useCallback(
@@ -85,8 +84,7 @@ export function useATSResumeChecker() {
       try {
         const result = await apiUploadResume(file);
         if (result.success && result.analysisResult) {
-          // Refetch data to update credits and resume list
-          fetchData();
+          await fetchData(); // Await fetchData to ensure state updates
           return {
             success: true,
             analysisResult: {
@@ -103,11 +101,11 @@ export function useATSResumeChecker() {
       } catch (error: any) {
         return {
           success: false,
-          error: error.message || "Upload failed",
+          error: error?.message || "Upload failed",
         };
       }
     },
-    [fetchData]
+    [fetchData],
   );
 
   return {

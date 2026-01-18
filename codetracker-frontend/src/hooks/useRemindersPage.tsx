@@ -39,17 +39,19 @@ export function useRemindersPage(userId?: string) {
           ...payload,
           userId,
         });
-        // optimistic update
         setReminders((prev) => [
           created,
           ...prev.filter((r) => r.id !== created.id),
         ]);
         return created;
+      } catch (e: any) {
+        setError(e?.message || "Failed to create reminder");
+        return null;
       } finally {
         setLoading(false);
       }
     },
-    [userId]
+    [userId],
   );
 
   const updateReminder = useCallback(
@@ -59,11 +61,14 @@ export function useRemindersPage(userId?: string) {
         const updated = await remindersService.updateReminder(id, payload);
         setReminders((prev) => prev.map((r) => (r.id === id ? updated : r)));
         return updated;
+      } catch (e: any) {
+        setError(e?.message || "Failed to update reminder");
+        return null;
       } finally {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   const deleteReminder = useCallback(async (id: string) => {
@@ -71,6 +76,8 @@ export function useRemindersPage(userId?: string) {
     try {
       await remindersService.deleteReminder(id);
       setReminders((prev) => prev.filter((r) => r.id !== id));
+    } catch (e: any) {
+      setError(e?.message || "Failed to delete reminder");
     } finally {
       setLoading(false);
     }

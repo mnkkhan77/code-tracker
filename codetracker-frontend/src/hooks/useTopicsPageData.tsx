@@ -43,13 +43,14 @@ export function useTopicsPageData() {
     if (loading) return [];
 
     return topics.map((topic) => {
+      // Use topicId for matching if available, fallback to topicName
       const problemsInTopic = problems.filter(
-        (p) => p.topicName === topic.name
+        (p) => p.topicId === topic.id || p.topicName === topic.name,
       );
       const totalProblems = problemsInTopic.length;
 
       const completedProblems = problemsInTopic.filter(
-        (p) => p.status === "completed"
+        (p) => p.status === "completed",
       ).length;
 
       const progressPercentage =

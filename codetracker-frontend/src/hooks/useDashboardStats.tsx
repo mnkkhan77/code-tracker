@@ -18,11 +18,11 @@ export function useDashboardStats() {
         ]);
 
         if (!mounted) return;
-        setUserStats(statsRes);
-        setTopics(topicsRes);
-        setUpcomingReviews(statsRes.upcomingReviews ?? []);
-      } catch (err) {
-        console.error("Failed to fetch dashboard stats:", err);
+        setUserStats(statsRes ?? null);
+        setTopics(topicsRes ?? []);
+        setUpcomingReviews(statsRes?.upcomingReviews ?? []);
+      } catch (err: any) {
+        console.error("Failed to fetch dashboard stats:", err?.message || err);
       } finally {
         if (mounted) setLoading(false);
       }

@@ -62,9 +62,9 @@ export interface UserProgress {
   userId: string;
   problemId: string;
   status: ProgressStatus;
-  bestTime?: number; // seconds
-  nextReviewDate?: string; // ISO
-  lastAttemptAt?: string; // ISO
+  bestTime?: number | null; // ensure nullable for consistency
+  nextReviewDate?: string;
+  lastAttemptAt?: string;
 }
 
 export interface CreateProgressDto {

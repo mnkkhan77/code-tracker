@@ -1,8 +1,8 @@
 // src/hooks/useTopicPageData.tsx
-import { ProblemModel } from "@/mappers/problemMapper";
+import { ProblemModel, mapProblemsDtoToModel } from "@/mappers/problemMapper";
 import * as problemsService from "@/services/problemsService";
 import * as progressService from "@/services/progressService";
-import { Difficulty, ProgressStatus, Topic, UserProgress } from "@/types/api";
+import { ProgressStatus, Topic, UserProgress } from "@/types/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./use-auth";
@@ -26,11 +26,9 @@ export function useTopicPageData(slug: string) {
       } = await problemsService.getTopicPageData(slug, user?.id);
 
       setTopic(currentTopic);
-      const correctedProblems = (problemsData || []).map((p) => ({
-        ...p,
-        difficulty: (p.difficulty as string).toLowerCase() as Difficulty,
-      }));
-      setProblems(correctedProblems);
+      // Use the mapper to ensure correct shape and types
+      const mappedProblems = mapProblemsDtoToModel(problemsData || []);
+      setProblems(mappedProblems);
 
       if (progressByProblemId) {
         setUserProgress(Object.values(progressByProblemId));
@@ -52,10 +50,18 @@ export function useTopicPageData(slug: string) {
     if (!topic) return [];
 
     const progressByProblemId = new Map(
-      userProgress.map((p) => [p.problemId, p])
+      userProgress.map((p) => [p.problemId, p]),
     );
 
-    return problems.map((problem) => ({ ...problem }));
+    // Merge progress info into problems, ensure correct types
+    return problems.map((problem) => {
+      const progress = progressByProblemId.get(problem.id);
+      return {
+        ...problem,
+        status: (progress?.status ?? "not_started") as typeof problem.status,
+        bestTime: progress?.bestTime ?? null,
+      };
+    });
   }, [topic, problems, userProgress]);
 
   const {
@@ -81,18 +87,15 @@ export function useTopicPageData(slug: string) {
       if (!user) return;
 
       const progressToUpdate = userProgress.find(
-        (p) => p.problemId === problemId
+        (p) => p.problemId === problemId,
       );
       try {
         let updatedProgress: UserProgress;
         if (progressToUpdate) {
-          updatedProgress = await progressService.upsertProgress(
-            // progressToUpdate.id,
-            {
-              ...progressToUpdate,
-              status,
-            }
-          );
+          updatedProgress = await progressService.upsertProgress({
+            ...progressToUpdate,
+            status,
+          });
         } else {
           updatedProgress = await progressService.upsertProgress({
             userId: user.id,
@@ -104,24 +107,28 @@ export function useTopicPageData(slug: string) {
 
         setUserProgress((currentProgress) => {
           const progressExists = currentProgress.some(
-            (p) => p.id === updatedProgress.id
+            (p) => p.id === updatedProgress.id,
           );
           if (progressExists) {
             return currentProgress.map((p) =>
-              p.id === updatedProgress.id ? updatedProgress : p
+              p.id === updatedProgress.id ? updatedProgress : p,
             );
           } else {
             return [...currentProgress, updatedProgress];
           }
         });
         setProblems((prev) =>
-          prev.map((p) => (p.id === problemId ? { ...p, status } : p))
+          prev.map((p) =>
+            p.id === problemId
+              ? { ...p, status: status as typeof p.status }
+              : p,
+          ),
         );
-      } catch (error) {
-        toast.error("Failed to update status.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update status.");
       }
     },
-    [user, userProgress]
+    [user, userProgress],
   );
 
   const updateProblemBestTime = useCallback(
@@ -129,18 +136,15 @@ export function useTopicPageData(slug: string) {
       if (!user) return;
 
       const progressToUpdate = userProgress.find(
-        (p) => p.problemId === problemId
+        (p) => p.problemId === problemId,
       );
       try {
         let updatedProgress: UserProgress;
         if (progressToUpdate) {
-          updatedProgress = await progressService.upsertProgress(
-            // progressToUpdate.id,
-            {
-              ...progressToUpdate,
-              bestTime,
-            }
-          );
+          updatedProgress = await progressService.upsertProgress({
+            ...progressToUpdate,
+            bestTime,
+          });
         } else {
           updatedProgress = await progressService.upsertProgress({
             userId: user.id,
@@ -153,24 +157,26 @@ export function useTopicPageData(slug: string) {
 
         setUserProgress((currentProgress) => {
           const progressExists = currentProgress.some(
-            (p) => p.id === updatedProgress.id
+            (p) => p.id === updatedProgress.id,
           );
           if (progressExists) {
             return currentProgress.map((p) =>
-              p.id === updatedProgress.id ? updatedProgress : p
+              p.id === updatedProgress.id ? updatedProgress : p,
             );
           } else {
             return [...currentProgress, updatedProgress];
           }
         });
         setProblems((prev) =>
-          prev.map((p) => (p.id === problemId ? { ...p, bestTime } : p))
+          prev.map((p) =>
+            p.id === problemId ? { ...p, bestTime: bestTime ?? null } : p,
+          ),
         );
-      } catch (error) {
-        toast.error("Failed to update best time.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update best time.");
       }
     },
-    [user, userProgress]
+    [user, userProgress],
   );
 
   return {

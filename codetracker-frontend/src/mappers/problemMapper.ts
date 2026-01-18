@@ -1,19 +1,16 @@
 // src/mappers/problemMapper.ts
-import { Problem, ProgressStatus } from "@/types/api";
+import { Problem } from "@/types/api";
 
 export type ProblemModel = Problem & {
   displayDifficulty: "Easy" | "Medium" | "Hard";
-  status: ProgressStatus;
-  bestTime: number | null; // Add bestTime
+  status: "not_started" | "in_progress" | "completed";
 };
 
 function mapDifficulty(difficulty: string): "Easy" | "Medium" | "Hard" {
-  switch (difficulty) {
+  switch (difficulty?.toLowerCase()) {
     case "easy":
-    case "EASY":
       return "Easy";
     case "hard":
-    case "HARD":
       return "Hard";
     default:
       return "Medium";
@@ -23,8 +20,10 @@ function mapDifficulty(difficulty: string): "Easy" | "Medium" | "Hard" {
 export function mapProblemsDtoToModel(dto: Problem[]): ProblemModel[] {
   return dto.map((p) => ({
     ...p,
-    displayDifficulty: mapDifficulty(p.difficulty),
-    status: (p.status as ProgressStatus) ?? "not_started",
-    bestTime: p.bestTime ?? null,
+    displayDifficulty: mapDifficulty(p.difficulty as string),
+    status: (p.status ?? "not_started") as
+      | "not_started"
+      | "in_progress"
+      | "completed",
   }));
 }

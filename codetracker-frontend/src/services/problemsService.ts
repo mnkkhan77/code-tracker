@@ -27,7 +27,7 @@ export async function getTopicBySlugWithProgress(slug: string) {
 }
 
 export async function getTopicProblems(
-  topicId: string
+  topicId: string,
 ): Promise<ProblemModel[]> {
   const raw = await problemsAPI.getProblemsByTopic(topicId);
   return mapProblemsDtoToModel(raw);
@@ -35,7 +35,7 @@ export async function getTopicProblems(
 
 export async function getTopicPageData(
   slug: string,
-  userId?: string
+  userId?: string,
 ): Promise<{
   topic: Topic | null;
   problems: ProblemModel[];
@@ -48,20 +48,23 @@ export async function getTopicPageData(
     return { topic: null, problems: [], progressByProblemId: null };
   }
 
-  // Use the problems from the topic object itself, which are now included in the response
-  const problems = mapProblemsDtoToModel(topic.problems || []);
+  // Ensure topic.problems exists and is an array
+  const problems = Array.isArray(topic.problems)
+    ? mapProblemsDtoToModel(topic.problems)
+    : [];
 
-  if (!userId) {
-    return { topic, problems, progressByProblemId: null };
+  let progressByProblemId: Record<string, UserProgress> | null = null;
+  if (userId) {
+    const progressList = await (
+      await import("@/api/progressAPI")
+    ).getUserProgress();
+    progressByProblemId = indexProgressByProblemId(progressList);
   }
 
-  const progressList = await (
-    await import("@/api/progressAPI")
-  ).getUserProgress();
   return {
     topic,
     problems,
-    progressByProblemId: indexProgressByProblemId(progressList),
+    progressByProblemId,
   };
 }
 

@@ -48,7 +48,7 @@ export function useProblemsPage() {
         toast.error("Failed to update status.");
       }
     },
-    [user, isAdmin, fetchProblems]
+    [user, isAdmin, fetchProblems],
   );
 
   const updateProblemBestTime = useCallback(
@@ -57,17 +57,17 @@ export function useProblemsPage() {
       try {
         await progressService.upsertProgress({
           problemId,
-          bestTime: newTime,
+          bestTime: newTime ?? null, // Ensure bestTime is always a number or null
           status: newStatus,
           userId: user.id,
         });
         toast.success("Best time updated!");
         await fetchProblems();
-      } catch (error) {
-        toast.error("Failed to update best time.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update best time.");
       }
     },
-    [user, isAdmin, fetchProblems]
+    [user, isAdmin, fetchProblems],
   );
 
   // ---- Admin CRUD ----
@@ -77,12 +77,12 @@ export function useProblemsPage() {
         await problemsService.addProblem(problemToAdd);
         await fetchProblems();
         toast.success("Problem added successfully!");
-      } catch (error) {
-        toast.error((error as Error).message || "Failed to add problem.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to add problem.");
         throw error;
       }
     },
-    [fetchProblems]
+    [fetchProblems],
   );
 
   const updateProblem = useCallback(
@@ -91,12 +91,12 @@ export function useProblemsPage() {
         await problemsService.updateProblem(problemId, problemToUpdate);
         await fetchProblems();
         toast.success("Problem updated successfully!");
-      } catch (error) {
-        toast.error((error as Error).message || "Failed to update problem.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update problem.");
         throw error;
       }
     },
-    [fetchProblems]
+    [fetchProblems],
   );
 
   const deleteProblem = useCallback(
@@ -105,11 +105,11 @@ export function useProblemsPage() {
         await problemsService.deleteProblem(problemId);
         await fetchProblems();
         toast.success("Problem deleted successfully!");
-      } catch (error) {
-        toast.error((error as Error).message || "Failed to delete problem.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to delete problem.");
       }
     },
-    [fetchProblems]
+    [fetchProblems],
   );
 
   // ---- Filtering ----

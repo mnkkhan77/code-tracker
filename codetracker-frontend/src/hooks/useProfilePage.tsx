@@ -12,15 +12,17 @@ export function useProfilePage() {
 
   const fetchProfile = useCallback(async () => {
     if (!authUser) {
+      setProfile(null); // Ensure profile is cleared if no authUser
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
       const userProfile = await getUserProfile();
-      setProfile(userProfile);
-    } catch (error) {
-      toast.error("Failed to load profile.");
+      setProfile(userProfile ?? null); // Fallback to null if undefined
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to load profile.");
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -36,15 +38,15 @@ export function useProfilePage() {
       setLoading(true);
       try {
         const updatedProfile = await updateUserProfile(updates);
-        setProfile(updatedProfile);
+        setProfile(updatedProfile ?? profile); // Fallback to previous profile if undefined
         toast.success("Profile updated successfully!");
-      } catch (error) {
-        toast.error("Failed to update profile.");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to update profile.");
       } finally {
         setLoading(false);
       }
     },
-    [profile]
+    [profile],
   );
 
   return {

@@ -1,18 +1,15 @@
 // src/hooks/useProblemFilters.tsx
 
+import type { ProblemModel } from "@/mappers/problemMapper";
 import { useMemo, useState } from "react";
 
-type Problem = {
-  id: string;
-  title: string;
-  difficulty: string;
-  tags: string[];
-  status: string;
-};
-
-export function useProblemFilters(problems: Problem[]) {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [difficultyFilter, setDifficultyFilter] = useState("all");
+export function useProblemFilters(problems: ProblemModel[]) {
+  const [statusFilter, setStatusFilter] = useState<
+    ProblemModel["status"] | "all"
+  >("all");
+  const [difficultyFilter, setDifficultyFilter] = useState<
+    ProblemModel["difficulty"] | "all"
+  >("all");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
 
   const allTags = useMemo(() => {
