@@ -98,10 +98,9 @@ public class ProblemServiceImpl implements ProblemService {
                     UserProgress progress = progressMap.get(problem.getId());
 
                     return new ProblemWithProgressDto(
-//                            problem.getId(),
+                            problem.getId(),
                             problem.getTitle(),
                             problem.getDifficulty(),
-//                            problem.getTopic() != null ? problem.getTopic().getId() : null,
                             problem.getTopic() != null ? problem.getTopic().getName() : null,
                             problem.getSlug(),
                             problem.getExternalUrls() != null
@@ -112,8 +111,6 @@ public class ProblemServiceImpl implements ProblemService {
                             problem.getTags() != null
                                     ? problem.getTags().stream().map(Tag::getName).toList()
                                     : List.of(),
-
-                            // ✅ pull from UserProgress if present, else defaults
                             progress != null ? progress.getStatus() : "not_started",
                             progress != null ? progress.getBestTime() : null
                     );

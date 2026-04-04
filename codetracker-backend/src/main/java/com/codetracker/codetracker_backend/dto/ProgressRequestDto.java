@@ -2,11 +2,13 @@ package com.codetracker.codetracker_backend.dto;
 
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class ProgressRequestDto {
 //    private UUID userId;
+    @NotNull(message = "problemId is required")
     private UUID problemId;
     private String status;
 //    private String notes;

@@ -40,9 +40,12 @@ public class PurchaseServiceImpl implements PurchaseService {
     public Purchase updatePurchase(@NonNull UUID purchaseId, Purchase updated) {
         return purchaseRepository.findById(purchaseId)
                 .map(existing -> {
+                    existing.setProductType(updated.getProductType());
                     existing.setAmount(updated.getAmount());
-                    existing.setDescription(updated.getDescription());
-                    existing.setPurchaseDate(updated.getPurchaseDate());
+                    existing.setCurrency(updated.getCurrency());
+                    existing.setStatus(updated.getStatus());
+                    existing.setPaidAt(updated.getPaidAt());
+                    existing.setProviderRef(updated.getProviderRef());
                     return purchaseRepository.save(existing);
                 })
                 .orElseThrow(() -> new RuntimeException("Purchase not found"));

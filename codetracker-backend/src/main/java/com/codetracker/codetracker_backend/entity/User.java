@@ -31,6 +31,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role; // ADMIN or USER
 
+    @Column(nullable = false)
+    private Double credits = 0.0;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserProgress> progressList = new ArrayList<>();
 

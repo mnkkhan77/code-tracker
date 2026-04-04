@@ -2,6 +2,7 @@ package com.codetracker.codetracker_backend.dto;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.codetracker.codetracker_backend.entity.Problem;
@@ -9,6 +10,7 @@ import com.codetracker.codetracker_backend.entity.Tag;
 import com.codetracker.codetracker_backend.entity.UserProgress;
 
 public record ProblemWithProgressDto(
+        UUID id,
         String title,
         String difficulty,
         String topicName,
@@ -36,6 +38,7 @@ public record ProblemWithProgressDto(
                 : List.of();
 
         return new ProblemWithProgressDto(
+                problem.getId(),
                 problem.getTitle(),
                 problem.getDifficulty(),
                 problem.getTopic() != null ? problem.getTopic().getName() : null,
