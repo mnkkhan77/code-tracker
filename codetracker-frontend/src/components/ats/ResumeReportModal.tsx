@@ -12,11 +12,11 @@ import {
   AlertCircle,
   CheckCircle,
   FileText,
+  Lightbulb,
   Star,
   Target,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
 
 interface ResumeReportModalProps {
   open: boolean;
@@ -24,9 +24,9 @@ interface ResumeReportModalProps {
   resume: {
     id: string;
     fileName: string;
-    atsScore: number;
-    analysisResult: string;
-    uploadDate: number;
+    atsScore?: number;
+    analysisResult?: any;
+    uploadDate: string | number;
     detailedAnalysis?: {
       keywordMatches: string[];
       missingKeywords: string[];
@@ -47,8 +47,6 @@ export function ResumeReportModal({
   onClose,
   resume,
 }: ResumeReportModalProps) {
-  const [isDownloading, setIsDownloading] = useState(false);
-
   const getScoreColor = (score: number) => {
     if (score >= 85) return "text-green-600";
     if (score > 70) return "text-yellow-600";
@@ -68,61 +66,7 @@ export function ResumeReportModal({
     return <XCircle className={`w-8 h-8 ${color}`} />;
   };
 
-  // Mock detailed analysis if not provided
-  const analysis = resume.detailedAnalysis || {
-    keywordMatches: ["JavaScript", "React", "Node.js", "TypeScript", "Git"],
-    missingKeywords: [
-      "AWS",
-      "Docker",
-      "Kubernetes",
-      "Python",
-      "Machine Learning",
-    ],
-    formatIssues: [
-      "Inconsistent bullet point formatting",
-      "Missing contact information",
-    ],
-    strengths: [
-      "Strong technical skills section",
-      "Quantified achievements in work experience",
-      "Clear project descriptions",
-      "Relevant education background",
-    ],
-    improvements: [
-      "Add more industry-specific keywords",
-      "Include metrics for project impact",
-      "Improve formatting consistency",
-      "Add a professional summary section",
-    ],
-    sections: [
-      {
-        name: "Contact Information",
-        score: 95,
-        feedback: "Complete and professional",
-      },
-      {
-        name: "Professional Summary",
-        score: 60,
-        feedback: "Could be more compelling and keyword-rich",
-      },
-      {
-        name: "Technical Skills",
-        score: 85,
-        feedback: "Good coverage of relevant technologies",
-      },
-      {
-        name: "Work Experience",
-        score: 75,
-        feedback: "Good structure, needs more quantified results",
-      },
-      { name: "Education", score: 90, feedback: "Well presented and relevant" },
-      {
-        name: "Projects",
-        score: 70,
-        feedback: "Good technical depth, could use more business impact",
-      },
-    ],
-  };
+  const analysis = resume.analysisResult || null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -175,29 +119,35 @@ export function ResumeReportModal({
               </p>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center space-x-3">
-                  {getScoreIcon(resume.atsScore)}
-                  <div>
-                    <div
-                      className={`text-2xl font-bold ${getScoreColor(resume.atsScore)}`}
-                    >
-                      {resume.atsScore}/100
+              {resume.atsScore != null ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3">
+                    {getScoreIcon(resume.atsScore)}
+                    <div>
+                      <div className={`text-2xl font-bold ${getScoreColor(resume.atsScore)}`}>
+                        {resume.atsScore}/100
+                      </div>
+                      <p className="text-sm text-muted-foreground">ATS Compatibility Score</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      ATS Compatibility Score
-                    </p>
+                  </div>
+                  <div className="w-2/5 sm:w-1/3">
+                    <Progress value={resume.atsScore} className="h-3" />
                   </div>
                 </div>
-                <div className="w-2/5 sm:w-1/3">
-                  <Progress value={resume.atsScore} className="h-3" />
+              ) : (
+                <div className="flex items-center space-x-3 text-muted-foreground">
+                  <AlertCircle className="w-8 h-8" />
+                  <div>
+                    <p className="font-medium">Analysis Pending</p>
+                    <p className="text-sm">ATS scoring is not yet available for this resume.</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Section Scores */}
-          <Card>
+          {analysis && <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Target className="w-5 h-5" />
@@ -206,7 +156,7 @@ export function ResumeReportModal({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analysis.sections.map((section, index) => (
+                {analysis.sections?.map((section: any, index: number) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-3 border rounded-lg"
@@ -233,57 +183,54 @@ export function ResumeReportModal({
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </Card>}
 
-          {/* Keywords Analysis */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-green-600 flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Matched Keywords</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.keywordMatches.map((keyword, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="bg-green-50 text-green-700 border-green-200"
-                    >
-                      {keyword}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-red-600 flex items-center space-x-2">
-                  <XCircle className="w-5 h-5" />
-                  <span>Missing Keywords</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.missingKeywords.map((keyword, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="bg-red-50 text-red-700 border-red-200"
-                    >
-                      {keyword}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Keywords Analysis — only shown when JD matching was used */}
+          {analysis && (analysis.keywordMatches?.length > 0 || analysis.missingKeywords?.length > 0) && (
+            <div className="grid md:grid-cols-2 gap-6">
+              {analysis.keywordMatches?.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-green-600 flex items-center space-x-2">
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Matched Keywords</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.keywordMatches.map((keyword: string, index: number) => (
+                        <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {analysis.missingKeywords?.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-red-600 flex items-center space-x-2">
+                      <XCircle className="w-5 h-5" />
+                      <span>Missing Keywords</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.missingKeywords.map((keyword: string, index: number) => (
+                        <Badge key={index} variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* Strengths and Improvements */}
-          <div className="grid md:grid-cols-2 gap-6">
+          {analysis && <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-green-600 flex items-center space-x-2">
@@ -293,7 +240,7 @@ export function ResumeReportModal({
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {analysis.strengths.map((strength, index) => (
+                  {analysis.strengths?.map((strength: string, index: number) => (
                     <li key={index} className="flex items-start space-x-2">
                       <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span className="text-sm break-words">{strength}</span>
@@ -302,7 +249,6 @@ export function ResumeReportModal({
                 </ul>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="text-yellow-600 flex items-center space-x-2">
@@ -312,7 +258,7 @@ export function ResumeReportModal({
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {analysis.improvements.map((improvement, index) => (
+                  {analysis.improvements?.map((improvement: string, index: number) => (
                     <li key={index} className="flex items-start space-x-2">
                       <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                       <span className="text-sm break-words">{improvement}</span>
@@ -321,10 +267,10 @@ export function ResumeReportModal({
                 </ul>
               </CardContent>
             </Card>
-          </div>
+          </div>}
 
           {/* Format Issues */}
-          {analysis.formatIssues.length > 0 && (
+          {analysis?.formatIssues?.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-red-600 flex items-center space-x-2">
@@ -334,7 +280,7 @@ export function ResumeReportModal({
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {analysis.formatIssues.map((issue, index) => (
+                  {analysis.formatIssues.map((issue: string, index: number) => (
                     <li key={index} className="flex items-start space-x-2">
                       <XCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                       <span className="text-sm break-words">{issue}</span>
@@ -346,16 +292,61 @@ export function ResumeReportModal({
           )}
 
           {/* Overall Feedback */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Overall Feedback</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed break-words">
-                {resume.analysisResult}
-              </p>
-            </CardContent>
-          </Card>
+          {analysis?.overallFeedback && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Overall Feedback</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed break-words">
+                  {analysis.overallFeedback}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Detailed Enhancements — only present for "detailed" analysis mode */}
+          {analysis?.detailedEnhancements?.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Lightbulb className="w-5 h-5 text-yellow-500" />
+                  <span>Detailed Enhancement Suggestions</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analysis.detailedEnhancements.map((item: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs font-medium">
+                          {item.section}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">{item.issue}</span>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold text-red-600 uppercase tracking-wide">Before</p>
+                          <p className="text-sm bg-red-50 border border-red-100 rounded p-2 break-words text-red-900">
+                            {item.originalText}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold text-green-600 uppercase tracking-wide">After</p>
+                          <p className="text-sm bg-green-50 border border-green-100 rounded p-2 break-words text-green-900">
+                            {item.suggestedText}
+                          </p>
+                        </div>
+                      </div>
+                      {item.reason && (
+                        <p className="text-xs text-muted-foreground italic">{item.reason}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </DialogContent>
     </Dialog>

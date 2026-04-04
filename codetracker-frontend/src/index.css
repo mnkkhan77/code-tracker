@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --background: 140 15% 96%;
+  --background: 140 12% 91%;
   --foreground: 25 25% 15%;
-  --card: 140, 25%, 97%;
+  --card: 0 0% 100%;
   --card-foreground: 222.2 47.4% 11.2%;
-  --popover: 140 20% 92%;
+  --popover: 0 0% 100%;
   --popover-foreground: 25 25% 15%;
   --primary: 150 50% 40%;
   --primary-foreground: 150 20% 98%;
@@ -18,7 +18,7 @@
   --accent: 140 25% 88%;
   --accent-foreground: 25 25% 15%;
   --destructive: 0 60% 50%;
-  --border: 140 10% 80%;
+  --border: 140 10% 75%;
   --input: 140 15% 90%;
   --radius: 0.5rem;
   --ring: 150 50% 40%;

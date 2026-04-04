@@ -4,7 +4,6 @@ import {
   AddAttemptDto,
   CreateProgressDto,
   TopicWithStats,
-  UserProgress,
   UserStatsDto,
 } from "@/types/api";
 
@@ -15,7 +14,7 @@ export function getTopicsWithStats(): Promise<TopicWithStats[]> {
   return progressAPI.getTopicsWithStats();
 }
 
-export function upsertProgress(dto: CreateProgressDto | UserProgress) {
+export function upsertProgress(dto: CreateProgressDto) {
   return progressAPI.upsertProgress(dto);
 }
 

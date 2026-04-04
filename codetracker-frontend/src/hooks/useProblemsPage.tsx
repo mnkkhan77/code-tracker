@@ -40,7 +40,6 @@ export function useProblemsPage() {
         await progressService.upsertProgress({
           problemId,
           status: newStatus,
-          userId: user.id,
         });
         toast.success("Status updated!");
         await fetchProblems(); // only problems refresh, no separate progress
@@ -57,9 +56,8 @@ export function useProblemsPage() {
       try {
         await progressService.upsertProgress({
           problemId,
-          bestTime: newTime ?? null, // Ensure bestTime is always a number or null
+          bestTime: newTime ?? undefined,
           status: newStatus,
-          userId: user.id,
         });
         toast.success("Best time updated!");
         await fetchProblems();

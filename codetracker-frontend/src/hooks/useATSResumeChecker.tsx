@@ -1,7 +1,9 @@
 // src/hooks/useATSResumeChecker.tsx
 import {
+  AnalysisMode,
   purchaseCredits as apiPurchaseCredits,
   uploadResumeForAnalysis as apiUploadResume,
+  deleteResume as apiDeleteResume,
   getUserCredits,
   getUserResumes,
 } from "@/api/atsAPI";
@@ -58,18 +60,12 @@ export function useATSResumeChecker() {
       try {
         const result = await apiPurchaseCredits(packageType);
         if (result.success) {
-          setCredits(result.newCredits);
-          const packages = {
-            small: { credits: 10, price: 5 },
-            medium: { credits: 20, price: 10 },
-            large: { credits: 35, price: 20 },
-          };
-          toast.success(
-            `Successfully purchased ${packages[packageType].credits} credits!`,
-          );
+          toast.success(`Successfully purchased ${result.creditsAdded} credits!`);
+          const updated = await getUserCredits();
+          setCredits(updated.credits ?? 0);
           return true;
         }
-        toast.error("Purchase failed. Please try again.");
+        toast.error(result.message || "Purchase failed. Please try again.");
         return false;
       } catch (error) {
         toast.error("Purchase failed. Please try again.");
@@ -80,23 +76,14 @@ export function useATSResumeChecker() {
   );
 
   const uploadResume = useCallback(
-    async (file: File) => {
+    async (file: File, jobDescription?: string, analysisMode: AnalysisMode = "standard") => {
       try {
-        const result = await apiUploadResume(file);
-        if (result.success && result.analysisResult) {
-          await fetchData(); // Await fetchData to ensure state updates
-          return {
-            success: true,
-            analysisResult: {
-              score: result.analysisResult.score,
-              resumeId: result.analysisResult.resume.id,
-            },
-          };
+        const result = await apiUploadResume(file, jobDescription, analysisMode);
+        if (result.success) {
+          await fetchData();
+          return { success: true, resumeId: result.resumeId, filename: result.filename, status: result.status };
         } else {
-          return {
-            success: false,
-            error: result.error || "Upload failed",
-          };
+          return { success: false, error: result.message || "Upload failed" };
         }
       } catch (error: any) {
         return {
@@ -108,11 +95,23 @@ export function useATSResumeChecker() {
     [fetchData],
   );
 
+  const deleteResume = useCallback(async (id: string) => {
+    const ok = await apiDeleteResume(id);
+    if (ok) {
+      setResumes(prev => prev.filter((r: any) => r.id !== id));
+      toast.success("Resume deleted.");
+    } else {
+      toast.error("Failed to delete resume.");
+    }
+    return ok;
+  }, []);
+
   return {
     credits,
     resumes,
     loading,
     purchaseCredits: handlePurchaseCredits,
     uploadResume,
+    deleteResume,
   };
 }

@@ -93,12 +93,12 @@ export function useTopicPageData(slug: string) {
         let updatedProgress: UserProgress;
         if (progressToUpdate) {
           updatedProgress = await progressService.upsertProgress({
-            ...progressToUpdate,
+            problemId,
             status,
+            bestTime: progressToUpdate.bestTime ?? undefined,
           });
         } else {
           updatedProgress = await progressService.upsertProgress({
-            userId: user.id,
             problemId,
             status,
           });
@@ -142,12 +142,12 @@ export function useTopicPageData(slug: string) {
         let updatedProgress: UserProgress;
         if (progressToUpdate) {
           updatedProgress = await progressService.upsertProgress({
-            ...progressToUpdate,
+            problemId,
             bestTime,
+            status: progressToUpdate.status,
           });
         } else {
           updatedProgress = await progressService.upsertProgress({
-            userId: user.id,
             problemId,
             bestTime,
             status: "in_progress",

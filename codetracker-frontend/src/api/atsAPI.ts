@@ -21,9 +21,17 @@ export const purchaseCredits = async (
   }
 };
 
-export const uploadResumeForAnalysis = async (file: File) => {
+export type AnalysisMode = "standard" | "detailed";
+
+export const uploadResumeForAnalysis = async (
+  file: File,
+  jobDescription?: string,
+  analysisMode: AnalysisMode = "standard",
+) => {
   const form = new FormData();
   form.append("resume", file);
+  if (analysisMode !== "detailed" && jobDescription) form.append("jobDescription", jobDescription);
+  form.append("analysisMode", analysisMode);
   try {
     const res = await apiClient.post("/ats/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -45,5 +53,14 @@ export const getUserResumes = async () => {
     return res.data ?? [];
   } catch (e: any) {
     return [];
+  }
+};
+
+export const deleteResume = async (id: string): Promise<boolean> => {
+  try {
+    await apiClient.delete(`/ats/resumes/${id}`);
+    return true;
+  } catch {
+    return false;
   }
 };
