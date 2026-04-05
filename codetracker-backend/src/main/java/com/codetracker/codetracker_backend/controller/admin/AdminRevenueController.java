@@ -1,6 +1,5 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
-import com.codetracker.codetracker_backend.entity.Purchase;
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
