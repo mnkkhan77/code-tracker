@@ -3,32 +3,36 @@ import { motion } from "framer-motion";
 import {
   Bell,
   BookOpen,
+  BarChart2,
   DollarSign,
   FileCheck,
   Home,
+  Sparkles,
   Target,
   User,
   Users,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-const allNavigation = [
+const userNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Topics", href: "/topics", icon: BookOpen },
   { name: "Problems", href: "/problems", icon: Target },
   { name: "Progress", href: "/progress", icon: Target },
   { name: "Reminders", href: "/reminders", icon: Bell },
   { name: "ATS Resume Checker", href: "/ats-resume-checker", icon: FileCheck },
+  { name: "Pricing", href: "/pricing", icon: Sparkles },
   { name: "Profile", href: "/profile", icon: User },
 ];
 
 const adminNavigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Home },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Problems", href: "/admin/problems", icon: BookOpen },
   { name: "Revenue", href: "/admin/revenue", icon: DollarSign },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart2 },
+  { name: "Profile", href: "/profile", icon: User },
 ];
-
-const adminHiddenLinks = ["/progress", "/reminders", "/ats-resume-checker"];
 
 interface SidebarProps {
   onLinkClick?: () => void;
@@ -38,29 +42,20 @@ export const Sidebar = ({ onLinkClick }: SidebarProps) => {
   const location = useLocation();
   const { isAdmin } = useAuth();
 
-  const navigation = isAdmin
-    ? allNavigation.filter((item) => !adminHiddenLinks.includes(item.href))
-    : allNavigation;
+  const navigation = isAdmin ? adminNavigation : userNavigation;
 
   return (
     <div className="flex flex-col h-full p-6">
       {/* Navigation */}
       <nav className="flex-1 space-y-2">
         {navigation.map((item) => {
-          const href =
-            isAdmin && item.name === "Dashboard"
-              ? "/admin/dashboard"
-              : item.href;
-          const isActive =
-            location.pathname === href ||
-            (isAdmin &&
-              item.name === "Dashboard" &&
-              location.pathname.startsWith("/admin"));
+          const isActive = location.pathname === item.href ||
+            (item.href !== "/profile" && location.pathname.startsWith(item.href));
 
           return (
             <motion.div key={item.name} whileHover={{ x: 4 }}>
               <Link
-                to={href}
+                to={item.href}
                 onClick={onLinkClick}
                 className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive

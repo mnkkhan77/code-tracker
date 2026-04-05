@@ -4,7 +4,7 @@ import {
   deleteUser,
   getUsers,
   updateUser,
-  User,
+  AdminUser as User,
 } from "@/api/adminAPI";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";

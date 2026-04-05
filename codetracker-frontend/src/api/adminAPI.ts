@@ -1,11 +1,160 @@
 // src/api/adminAPI.ts
-import { Attempt, Problem, Purchase, User, UserProgress } from "@/types/api";
+import { Attempt, Problem, Purchase, UserProgress } from "@/types/api";
 import apiClient from "./apiClient";
 
-// ---- Users (AdminController at /api/admin/users) ----
-export const getUsers = async (): Promise<User[]> => {
-  const res = await apiClient.get<User[]>("/admin/users");
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  bio?: string;
+  registrationDate: string;
+  problemsSolved: number;
+  status: string;
+}
+
+// Re-export as User for backward compatibility with AdminUsersPage
+export type User = AdminUser;
+
+export interface AdminStats {
+  totalUsers: number;
+  totalProblems: number;
+  totalRevenue: number;
+  revenueThisMonth: number;
+  newUsersThisMonth: number;
+  completedPurchases: number;
+}
+
+export interface RevenueTransaction {
+  id: string;
+  userId: string;
+  userName: string;
+  amount: number;
+  type: string;
+  date: string;
+  status: "completed" | "pending" | "failed";
+  currency: string;
+}
+
+export interface RevenueData {
+  daily: { today: number; yesterday: number; change: number };
+  monthly: { thisMonth: number; lastMonth: number; change: number };
+  overall: { total: number; totalTransactions: number; averageTransaction: number };
+  transactions: RevenueTransaction[];
+}
+
+export const getRevenueData = async (): Promise<RevenueData> => {
+  const res = await apiClient.get<RevenueData>("/admin/revenue");
   return res.data;
+};
+
+// ---- Admin Problems ----
+export interface AdminProblem {
+  id: string;
+  title: string;
+  difficulty: "easy" | "medium" | "hard";
+  topicId: string;
+  topicName: string;
+  slug: string;
+  tags: string[];
+  externalUrls: { platform: string; url: string }[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminProblemRequest {
+  title: string;
+  difficulty: string;
+  topicId: string;
+  slug: string;
+  tags: string[];
+  externalUrls: { platform: string; url: string }[];
+}
+
+export const getAdminProblems = async (): Promise<AdminProblem[]> => {
+  const res = await apiClient.get<AdminProblem[]>("/admin/problems");
+  return Array.isArray(res.data) ? res.data : [];
+};
+
+export const getAdminProblem = async (id: string): Promise<AdminProblem> => {
+  const res = await apiClient.get<AdminProblem>(`/admin/problems/${id}`);
+  return res.data;
+};
+
+export const createAdminProblem = async (payload: AdminProblemRequest): Promise<AdminProblem> => {
+  const res = await apiClient.post<AdminProblem>("/admin/problems", payload);
+  return res.data;
+};
+
+export const updateAdminProblem = async (id: string, payload: Partial<AdminProblemRequest>): Promise<AdminProblem> => {
+  const res = await apiClient.put<AdminProblem>(`/admin/problems/${id}`, payload);
+  return res.data;
+};
+
+export const deleteAdminProblem = async (id: string): Promise<void> => {
+  await apiClient.delete(`/admin/problems/${id}`);
+};
+
+// ---- Admin Analytics ----
+export interface MonthlyDataPoint {
+  month: string;
+  count: number;
+}
+
+export interface TopicDataPoint {
+  topic: string;
+  count: number;
+}
+
+export interface ProblemStats {
+  easy: number;
+  medium: number;
+  hard: number;
+  byTopic: TopicDataPoint[];
+}
+
+export interface LearningStats {
+  totalAttempts: number;
+  successfulAttempts: number;
+  completedProblems: number;
+  inProgressProblems: number;
+  notStartedProblems: number;
+}
+
+export interface RevenueByProductType {
+  productType: string;
+  total: number;
+  count: number;
+}
+
+export interface MonthlyRevenuePoint {
+  month: string;
+  amount: number;
+}
+
+export interface AdminAnalytics {
+  userGrowthTrend: MonthlyDataPoint[];
+  problemStats: ProblemStats;
+  learningStats: LearningStats;
+  revenueByProductType: RevenueByProductType[];
+  monthlyRevenueTrend: MonthlyRevenuePoint[];
+}
+
+export const getAdminAnalytics = async (): Promise<AdminAnalytics> => {
+  const res = await apiClient.get<AdminAnalytics>("/admin/analytics");
+  return res.data;
+};
+
+// ---- Admin Stats ----
+export const getAdminStats = async (): Promise<AdminStats> => {
+  const res = await apiClient.get<AdminStats>("/admin/stats");
+  return res.data;
+};
+
+// ---- Users (AdminController at /api/admin/users) ----
+export const getUsers = async (): Promise<AdminUser[]> => {
+  const res = await apiClient.get<AdminUser[]>("/admin/users");
+  return Array.isArray(res.data) ? res.data : [];
 };
 
 export const getUser = async (id: string): Promise<User> => {
@@ -67,5 +216,3 @@ export const getProgressByUserId = async (
   return res.data;
 };
 
-// src/api/adminApi.ts
-export * from "./adminAPI";

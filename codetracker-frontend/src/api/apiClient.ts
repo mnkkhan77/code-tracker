@@ -1,7 +1,7 @@
 // src/apiClient.ts
 import axios from "axios";
 
-const baseURL = "http://localhost:8080/api";
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 const apiClient = axios.create({
   baseURL,

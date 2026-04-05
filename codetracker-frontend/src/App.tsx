@@ -31,9 +31,16 @@ import ProgressPage from "@/pages/ProgressPage";
 import RemindersPage from "@/pages/RemindersPage";
 import TopicsPage from "@/pages/Topics";
 
+// Payment Pages
+import PricingPage from "@/pages/PricingPage";
+import PaymentSuccessPage from "@/pages/payment/PaymentSuccessPage";
+import PaymentCancelPage from "@/pages/payment/PaymentCancelPage";
+
 // Admin Pages
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminAnalyticsPage from "@/pages/admin/AdminAnalyticsPage";
 import AdminProblemDetailsPage from "@/pages/admin/AdminProblemDetailsPage";
+import AdminProblemsPage from "@/pages/admin/AdminProblemsPage";
 import AdminRevenuePage from "@/pages/admin/AdminRevenuePage";
 import AdminUserDetailsPage from "@/pages/admin/AdminUserDetailsPage";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
@@ -56,10 +63,15 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
             </Route>
-            {/* Hybrid Route for Problems Page */}
+            {/* Hybrid Route for Problems Page + Pricing */}
             <Route element={<HybridLayout />}>
               <Route path="/problems" element={<ProblemsPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
             </Route>
+
+            {/* Payment result pages — standalone (no sidebar) */}
+            <Route path="/payment/success" element={<PaymentSuccessPage />} />
+            <Route path="/payment/cancel" element={<PaymentCancelPage />} />
 
             {/* Authenticated Routes */}
             <Route element={<ProtectedRoute />}>
@@ -80,15 +92,11 @@ function App() {
                 <Route element={<AdminRoute />}>
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
-                  <Route
-                    path="/admin/users/:id"
-                    element={<AdminUserDetailsPage />}
-                  />
-                  <Route
-                    path="/admin/problems/:id"
-                    element={<AdminProblemDetailsPage />}
-                  />
+                  <Route path="/admin/users/:id" element={<AdminUserDetailsPage />} />
+                  <Route path="/admin/problems" element={<AdminProblemsPage />} />
+                  <Route path="/admin/problems/:id" element={<AdminProblemDetailsPage />} />
                   <Route path="/admin/revenue" element={<AdminRevenuePage />} />
+                  <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
                 </Route>
               </Route>
             </Route>
