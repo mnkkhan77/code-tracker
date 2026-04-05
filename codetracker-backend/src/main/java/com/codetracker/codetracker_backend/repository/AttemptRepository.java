@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface AttemptRepository extends JpaRepository<Attempt, UUID> {
     List<Attempt> findByUserProgress_User_Id(UUID userId);
     List<Attempt> findByUserProgress_Problem_Id(UUID problemId);
+    long countBySuccessful(boolean successful);
 }

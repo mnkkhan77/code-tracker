@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
+import com.codetracker.codetracker_backend.dto.AdminUserDto;
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.entity.*;
 import com.codetracker.codetracker_backend.service.*;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -23,8 +25,21 @@ public class AdminController {
 
     // Get all users
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<AdminUserDto> getAllUsers() {
+        return userService.getAllUsers().stream()
+                .map(u -> new AdminUserDto(
+                        u.getId().toString(),
+                        u.getName(),
+                        u.getEmail(),
+                        u.getRole() != null ? u.getRole().name() : "USER",
+                        u.getBio(),
+                        u.getCreatedDate() != null ? u.getCreatedDate().toString() : null,
+                        (int) u.getProgressList().stream()
+                                .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                                .count(),
+                        "active"
+                ))
+                .collect(Collectors.toList());
     }
 
     // Get user by ID

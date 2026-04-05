@@ -13,4 +13,5 @@ public interface UserProgressRepository extends JpaRepository<UserProgress, UUID
     List<UserProgress> findByUserId(UUID userId);
     List<UserProgress> findByProblemId(UUID problemId);
     Optional<UserProgress> findByUserIdAndProblemId(UUID userId, UUID problemId);
+    long countByStatus(String status);
 }

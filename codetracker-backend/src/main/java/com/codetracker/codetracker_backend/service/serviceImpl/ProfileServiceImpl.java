@@ -32,7 +32,7 @@ public class ProfileServiceImpl implements ProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
-        return new UserDto(user.getName(), user.getBio(), user.getEmail(), null);  // Set password as null for security reasons
+        return new UserDto(user.getName(), user.getBio(), user.getEmail(), null, user.getRole().name());
     }
 
     @Override
