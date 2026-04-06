@@ -1,14 +1,27 @@
 // src/pages/ProgressPage.tsx
+import { getMyAttempts } from "@/api/attemptsAPI";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import { CheckCircle, Clock, Target, TrendingUp } from "lucide-react";
+import { Attempt } from "@/types/api";
+import { CheckCircle, Clock, Target, TrendingUp, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 function ProgressPageContent() {
   const { userStats, loading } = useDashboardStats();
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [attemptsLoading, setAttemptsLoading] = useState(true);
+
+  useEffect(() => {
+    getMyAttempts().then((data) => {
+      setAttempts(data);
+      setAttemptsLoading(false);
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -127,6 +140,64 @@ function ProgressPageContent() {
           <Button asChild>
             <Link to="/topics">Find a New Problem</Link>
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Attempt History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            Recent Attempts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {attemptsLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          ) : attempts.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              No attempts recorded yet. Start solving problems!
+            </p>
+          ) : (
+            <div className="divide-y">
+              {attempts.slice(0, 20).map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="flex items-center justify-between py-3 gap-4"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {attempt.successful ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    )}
+                    <span className="text-sm text-muted-foreground truncate">
+                      {attempt.date
+                        ? new Date(attempt.date).toLocaleString()
+                        : "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {attempt.duration != null && (
+                      <Badge variant="secondary" className="text-xs">
+                        {attempt.duration}s
+                      </Badge>
+                    )}
+                    <Badge
+                      variant={attempt.successful ? "default" : "destructive"}
+                      className="text-xs"
+                    >
+                      {attempt.successful ? "Passed" : "Failed"}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

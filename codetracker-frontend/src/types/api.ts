@@ -25,7 +25,7 @@ export interface UserStatsDto {
   notStarted: number;
   progressPercentage: number;
   totalTimeSpent: number;
-  upcomingReviews?: any[]; // TODO: refine type
+  upcomingReviews?: ReminderProblem[];
 }
 
 // --- Topics & Problems ---
@@ -82,17 +82,18 @@ export interface UpdateProgressDto {
 // --- Attempts ---
 export interface Attempt {
   id: string;
-  userId: string;
-  problemId: string;
-  duration?: number; // seconds
-  timestamp: number; // epoch millis
+  duration?: number; // seconds/minutes (backend field)
+  date?: string;     // ISO datetime from backend
+  successful?: boolean;
+  // legacy frontend-only fields
+  userId?: string;
+  problemId?: string;
+  timestamp?: number;
 }
 
 export interface AddAttemptDto {
-  userId: string;
-  problemId: string;
   duration?: number;
-  timestamp?: number; // if omitted, backend can set now
+  successful?: boolean;
 }
 
 // --- Purchases / Credits / ATS (optional) ---
@@ -120,14 +121,29 @@ export interface Resume {
 }
 
 export interface Reminder {
-  id: string; // uuid
-  userId?: string; // optional: tie to a user when available
-  title: string;
+  id: string;
+  userId?: string;
+  entityType?: string;
+  entityId?: string;
+  nextReminderDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  // legacy local-only fields (kept for localStorage fallback compatibility)
+  title?: string;
   notes?: string;
-  remindAt?: string; // ISO datetime string when reminder should trigger
+  remindAt?: string;
   completed?: boolean;
-  createdAt: string; // ISO
-  updatedAt?: string; // ISO
+}
+
+/** Spaced repetition entry — one problem scheduled for review via SM-2 */
+export interface ReminderProblem {
+  id: string;
+  reminder?: Reminder;
+  problem?: Problem;
+  repetitionCount: number;
+  intervalDays: number;
+  easeFactor: number;
+  nextReviewDate: string; // ISO datetime
 }
 
 export interface TopicWithStats extends Topic {

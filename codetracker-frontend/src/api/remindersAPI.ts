@@ -1,5 +1,5 @@
 // src/api/remindersAPI.ts
-import { Reminder } from "@/types/api";
+import { Reminder, ReminderProblem } from "@/types/api";
 import apiClient from "./apiClient";
 
 /**
@@ -67,4 +67,38 @@ export const deleteReminderApi = async (id: string): Promise<void> => {
   } catch (error) {
     throw error;
   }
+};
+
+// ---- Spaced Repetition (SM-2) ----
+
+/** Get all problems due for spaced repetition review today. */
+export const getDueReviewsApi = async (): Promise<ReminderProblem[]> => {
+  const res = await apiClient.get<ReminderProblem[]>("/reminders/due");
+  return res.data;
+};
+
+/** Schedule a problem for spaced repetition. */
+export const scheduleReviewApi = async (
+  problemId: string,
+): Promise<ReminderProblem> => {
+  const res = await apiClient.post<ReminderProblem>("/reminders/schedule", null, {
+    params: { problemId },
+  });
+  return res.data;
+};
+
+/**
+ * Record a review result using SM-2.
+ * @param reminderProblemId the ReminderProblem id
+ * @param quality 0-5 recall quality (0=blackout, 5=perfect)
+ */
+export const recordReviewApi = async (
+  reminderProblemId: string,
+  quality: number,
+): Promise<ReminderProblem> => {
+  const res = await apiClient.post<ReminderProblem>(
+    `/reminders/review/${reminderProblemId}`,
+    { quality },
+  );
+  return res.data;
 };

@@ -2,6 +2,16 @@
 import { Attempt } from "@/types/api";
 import apiClient from "./apiClient";
 
+/** Get all attempts for the currently authenticated user. */
+export const getMyAttempts = async (): Promise<Attempt[]> => {
+  try {
+    const res = await apiClient.get<Attempt[]>("/attempts/me");
+    return res.data ?? [];
+  } catch (e: any) {
+    return [];
+  }
+};
+
 export const getUserAttempts = async (userId: string): Promise<Attempt[]> => {
   try {
     const res = await apiClient.get<Attempt[]>(`/attempts/user/${userId}`);
