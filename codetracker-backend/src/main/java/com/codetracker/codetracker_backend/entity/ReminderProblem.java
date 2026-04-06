@@ -30,7 +30,8 @@ public class ReminderProblem {
     private Problem problem;
 
     private int repetitionCount;   // how many successful reviews
-    private int intervalDays;      // current interval length
+    private int intervalDays;      // current interval length in days
+    private double easeFactor;     // SM-2 ease factor (min 1.3, default 2.5)
     private LocalDateTime nextReviewDate; // when to show next
 }
 

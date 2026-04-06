@@ -23,8 +23,13 @@ import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ProblemService;
 import com.codetracker.codetracker_backend.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Problems", description = "Problem listing and management")
 @RestController
 @RequestMapping("/api/problems")
 @RequiredArgsConstructor
@@ -34,30 +39,40 @@ public class ProblemController {
     private final UserRepository userRepository;
     private final UserService userService;
 
+    @Operation(summary = "Get all problems")
+    @ApiResponse(responseCode = "200", description = "List of all problems")
     @GetMapping
     public List<ProblemDto> getAllProblems() {
         return problemService.getAllProblems();
     }
 
+    @Operation(summary = "Get all problems with current user's progress")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Problems with progress data"),
+        @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     @GetMapping("/with-progress")
     public ResponseEntity<List<ProblemWithProgressDto>> getProblemsWithProgress(
             Authentication authentication) {
-
-        // Get user ID from authentication
         String email = authentication.getName();
         User user = userService.getUserByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        // Get problems with progress
         List<ProblemWithProgressDto> result = problemService.getProblemsWithUserProgress(user.getId());
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Get a problem by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Problem found"),
+        @ApiResponse(responseCode = "404", description = "Problem not found")
+    })
     @GetMapping("/{id}")
     public ProblemDto getProblem(@PathVariable UUID id) {
         return problemService.getProblemById(id);
     }
 
+    @Operation(summary = "Get problems created by the current user")
+    @ApiResponse(responseCode = "200", description = "List of problems by current user")
     @GetMapping("/me")
     public List<Problem> getMyProblems(Authentication auth) {
         UUID userId = userRepository.findByEmail(auth.getName())
@@ -66,27 +81,36 @@ public class ProblemController {
         return problemService.getProblemsByUser(userId);
     }
 
+    @Operation(summary = "Get problems by user ID")
+    @ApiResponse(responseCode = "200", description = "List of problems by user")
     @GetMapping("/user/{userId}")
     public List<Problem> getProblemsByUser(@PathVariable UUID userId) {
         return problemService.getProblemsByUser(userId);
     }
 
-
+    @Operation(summary = "Get problems by topic ID")
+    @ApiResponse(responseCode = "200", description = "Problems filtered by topic")
     @GetMapping("/topic/{topicId}")
     public List<ProblemDto> getProblemsByTopic(@PathVariable UUID topicId) {
         return problemService.getProblemsByTopicId(topicId);
     }
 
+    @Operation(summary = "Create a new problem")
+    @ApiResponse(responseCode = "200", description = "Problem created")
     @PostMapping
     public Problem createProblem(@RequestBody Problem problem) {
         return problemService.createProblem(problem);
     }
 
+    @Operation(summary = "Update a problem by ID")
+    @ApiResponse(responseCode = "200", description = "Problem updated")
     @PutMapping("/{id}")
     public Problem updateProblem(@PathVariable UUID id, @RequestBody Problem problem) {
         return problemService.updateProblem(id, problem);
     }
 
+    @Operation(summary = "Delete a problem by ID")
+    @ApiResponse(responseCode = "200", description = "Problem deleted")
     @DeleteMapping("/{id}")
     public void deleteProblem(@PathVariable UUID id) {
         problemService.deleteProblem(id);

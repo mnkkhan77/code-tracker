@@ -24,9 +24,14 @@ import com.codetracker.codetracker_backend.service.ProblemService;
 import com.codetracker.codetracker_backend.service.UserProgressService;
 import com.codetracker.codetracker_backend.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Progress", description = "User problem progress tracking")
 @RestController
 @RequestMapping("/api/progress")
 @RequiredArgsConstructor
@@ -36,6 +41,8 @@ public class UserProgressController {
     private final UserService userService;
     private final ProblemService problemService;
 
+    @Operation(summary = "Get current user's progress stats")
+    @ApiResponse(responseCode = "200", description = "User stats returned")
     @GetMapping("/me")
     public ResponseEntity<UserStatsDto> getUserStats(Authentication authentication) {
         String email = authentication.getName();
@@ -45,6 +52,11 @@ public class UserProgressController {
         return ResponseEntity.ok(userProgressService.getUserStats(user.getId()));
     }
 
+    @Operation(summary = "Get a progress record by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Progress found"),
+        @ApiResponse(responseCode = "404", description = "Progress not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<UserProgress> getProgress(@PathVariable UUID id) {
         return userProgressService.getProgressById(id)
@@ -52,16 +64,22 @@ public class UserProgressController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Get all progress records for a user")
+    @ApiResponse(responseCode = "200", description = "Progress list returned")
     @GetMapping("/user/{userId}")
     public List<UserProgress> getProgressByUser(@PathVariable UUID userId) {
         return userProgressService.getProgressByUser(userId);
     }
 
+    @Operation(summary = "Get all progress records for a problem")
+    @ApiResponse(responseCode = "200", description = "Progress list returned")
     @GetMapping("/problem/{problemId}")
     public List<UserProgress> getProgressByProblem(@PathVariable UUID problemId) {
         return userProgressService.getProgressByProblem(problemId);
     }
 
+    @Operation(summary = "Create or update progress for a problem")
+    @ApiResponse(responseCode = "200", description = "Progress upserted")
     @PostMapping
     public ProgressResponseDto upsertProgress(
             @Valid @RequestBody ProgressRequestDto dto,
@@ -77,6 +95,8 @@ public class UserProgressController {
         return userProgressService.upsertProgress(user, problem, dto);
     }
 
+    @Operation(summary = "Get all progress records for current user")
+    @ApiResponse(responseCode = "200", description = "Progress list returned")
     @GetMapping
     public List<ProgressResponseDto> getUserProgress(Authentication authentication) {
         String email = authentication.getName();
@@ -86,6 +106,8 @@ public class UserProgressController {
         return userProgressService.getUserProgress(user);
     }
 
+    @Operation(summary = "Delete a progress record")
+    @ApiResponse(responseCode = "200", description = "Progress deleted")
     @DeleteMapping("/{id}")
     public void deleteProgress(@PathVariable UUID id) {
         userProgressService.deleteProgress(id);

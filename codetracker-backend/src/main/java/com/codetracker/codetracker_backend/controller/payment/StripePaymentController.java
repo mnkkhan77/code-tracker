@@ -13,6 +13,10 @@ import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+@Tag(name = "Payments", description = "Stripe payment and webhook handling")
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
@@ -64,6 +69,11 @@ public class StripePaymentController {
             "CREDITS",         "100 platform credits for enhanced features"
     );
 
+    @Operation(summary = "Create a Stripe checkout session")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Checkout URL returned"),
+        @ApiResponse(responseCode = "400", description = "Invalid product type")
+    })
     @PostMapping("/checkout")
     public ResponseEntity<CheckoutResponseDto> createCheckoutSession(
             @Valid @RequestBody CheckoutRequestDto request,
@@ -123,6 +133,11 @@ public class StripePaymentController {
         return ResponseEntity.ok(new CheckoutResponseDto(session.getUrl(), purchase.getId().toString()));
     }
 
+    @Operation(summary = "Handle Stripe webhook events")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Event processed"),
+        @ApiResponse(responseCode = "400", description = "Invalid signature")
+    })
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(HttpServletRequest request) throws IOException {
         byte[] payload = request.getInputStream().readAllBytes();

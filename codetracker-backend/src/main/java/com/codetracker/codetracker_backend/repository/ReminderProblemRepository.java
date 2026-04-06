@@ -6,10 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ReminderProblemRepository extends JpaRepository<ReminderProblem, UUID> {
     List<ReminderProblem> findByReminderUserIdAndNextReviewDateBefore(UUID userId, LocalDateTime now);
+    Optional<ReminderProblem> findByReminderIdAndProblemId(UUID reminderId, UUID problemId);
 }
 

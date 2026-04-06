@@ -13,9 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ProfileService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Profile", description = "Current user profile management")
 @RestController
 @RequestMapping("/api/profile")
 @RequiredArgsConstructor
@@ -23,19 +27,21 @@ public class ProfileController {
 
     private final ProfileService profileService;
     private final UserRepository userRepository;
-    // Resolve current user's UUID using their email from Authentication
+
     private UUID currentUserId(Authentication auth) {
         String email = auth.getName();
         return userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found by email: " + email)).getId();
     }
 
-    // Get own profile
+    @Operation(summary = "Get current user's profile")
+    @ApiResponse(responseCode = "200", description = "Profile returned")
     @GetMapping("/me")
     public ResponseEntity<UserDto> getMyProfile(Authentication authentication) {
         return ResponseEntity.ok(profileService.getMyProfile(currentUserId(authentication)));
     }
 
-    // Update own profile
+    @Operation(summary = "Update current user's profile")
+    @ApiResponse(responseCode = "200", description = "Profile updated")
     @PatchMapping("/me")
     public ResponseEntity<UserDto> updateMyProfile(Authentication authentication, @RequestBody UserDto request) {
         return ResponseEntity.ok(profileService.updateMyProfile(currentUserId(authentication), request));

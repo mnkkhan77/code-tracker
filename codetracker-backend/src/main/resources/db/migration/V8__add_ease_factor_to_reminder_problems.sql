@@ -1,0 +1,2 @@
+ALTER TABLE reminder_problems
+    ADD COLUMN IF NOT EXISTS ease_factor NUMERIC(4,2) NOT NULL DEFAULT 2.50;

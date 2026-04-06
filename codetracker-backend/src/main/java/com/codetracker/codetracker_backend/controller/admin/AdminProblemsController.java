@@ -10,6 +10,9 @@ import com.codetracker.codetracker_backend.repository.ExternalUrlRepository;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.TagRepository;
 import com.codetracker.codetracker_backend.repository.TopicRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Admin - Problems", description = "Problem management (admin only)")
 @RestController
 @RequestMapping("/api/admin/problems")
 @RequiredArgsConstructor
@@ -29,6 +33,8 @@ public class AdminProblemsController {
     private final TagRepository tagRepository;
     private final ExternalUrlRepository externalUrlRepository;
 
+    @Operation(summary = "Get all problems (admin)")
+    @ApiResponse(responseCode = "200", description = "List of all problems")
     @GetMapping
     public List<AdminProblemResponseDto> getAllProblems() {
         return problemRepository.findAll().stream()
@@ -36,6 +42,11 @@ public class AdminProblemsController {
                 .toList();
     }
 
+    @Operation(summary = "Get a problem by ID (admin)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Problem found"),
+        @ApiResponse(responseCode = "404", description = "Problem not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<AdminProblemResponseDto> getProblem(@PathVariable UUID id) {
         return problemRepository.findById(id)
@@ -44,6 +55,8 @@ public class AdminProblemsController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Create a new problem (admin)")
+    @ApiResponse(responseCode = "201", description = "Problem created")
     @PostMapping
     public ResponseEntity<AdminProblemResponseDto> createProblem(@RequestBody AdminProblemRequestDto req) {
         Topic topic = topicRepository.findById(req.getTopicId())
@@ -63,6 +76,11 @@ public class AdminProblemsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(AdminProblemResponseDto.fromEntity(reloaded));
     }
 
+    @Operation(summary = "Update a problem (admin)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Problem updated"),
+        @ApiResponse(responseCode = "404", description = "Problem not found")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<AdminProblemResponseDto> updateProblem(
             @PathVariable UUID id, @RequestBody AdminProblemRequestDto req) {
@@ -96,6 +114,11 @@ public class AdminProblemsController {
         return ResponseEntity.ok(AdminProblemResponseDto.fromEntity(reloaded));
     }
 
+    @Operation(summary = "Delete a problem (admin)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Problem deleted"),
+        @ApiResponse(responseCode = "404", description = "Problem not found")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProblem(@PathVariable UUID id) {
         if (!problemRepository.existsById(id)) {

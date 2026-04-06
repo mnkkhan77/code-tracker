@@ -1,6 +1,9 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Tag(name = "Admin - Revenue", description = "Revenue analytics (admin only)")
 @RestController
 @RequestMapping("/api/admin/revenue")
 @RequiredArgsConstructor
@@ -22,6 +26,8 @@ public class AdminRevenueController {
 
     private final PurchaseRepository purchaseRepository;
 
+    @Operation(summary = "Get revenue summary and recent transactions")
+    @ApiResponse(responseCode = "200", description = "Revenue data returned")
     @GetMapping
     public RevenueResponse getRevenue() {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();

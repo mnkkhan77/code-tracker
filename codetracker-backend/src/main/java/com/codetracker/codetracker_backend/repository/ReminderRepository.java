@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -22,5 +23,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, UUID> {
             @Param("today") LocalDate today,
             @Param("until") LocalDate until
     );
+
+    Optional<Reminder> findByUserIdAndEntityTypeAndEntityId(UUID userId, String entityType, UUID entityId);
 }
 

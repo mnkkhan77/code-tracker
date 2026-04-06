@@ -3,11 +3,16 @@ package com.codetracker.codetracker_backend.controller.common;
 import com.codetracker.codetracker_backend.dto.RegisterRequest;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "Authentication", description = "User registration and login")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -18,6 +23,11 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @Operation(summary = "Register a new user")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User registered successfully"),
+        @ApiResponse(responseCode = "400", description = "Email missing or already in use")
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (request.getEmail() == null) {
@@ -35,6 +45,12 @@ public class AuthController {
         ));
     }
 
+    @Operation(summary = "Login and receive a JWT token")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Login successful, returns JWT token"),
+        @ApiResponse(responseCode = "400", description = "Email or password missing"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");

@@ -4,6 +4,10 @@ import com.codetracker.codetracker_backend.dto.AdminUserDto;
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.entity.*;
 import com.codetracker.codetracker_backend.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Tag(name = "Admin - Users", description = "User management (admin only)")
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
@@ -23,7 +28,8 @@ public class AdminController {
     private final AttemptService attemptService;
     private final UserProgressService userProgressService;
 
-    // Get all users
+    @Operation(summary = "Get all users")
+    @ApiResponse(responseCode = "200", description = "List of all users")
     @GetMapping
     public List<AdminUserDto> getAllUsers() {
         return userService.getAllUsers().stream()
@@ -42,7 +48,11 @@ public class AdminController {
                 .collect(Collectors.toList());
     }
 
-    // Get user by ID
+    @Operation(summary = "Get a user by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User found"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable UUID id) {
         return userService.getUserById(id)
@@ -50,41 +60,50 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Create a new user
+    @Operation(summary = "Create a new user")
+    @ApiResponse(responseCode = "200", description = "User created")
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.createUser(user);
     }
 
-    // Update a user
+    @Operation(summary = "Update a user")
+    @ApiResponse(responseCode = "200", description = "User updated")
     @PutMapping("/{id}")
     public User updateUser(@PathVariable UUID id, @RequestBody UserDto user) {
         return userService.updateUser(id, user);
     }
 
-    // Delete a user
+    @Operation(summary = "Delete a user")
+    @ApiResponse(responseCode = "200", description = "User deleted")
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
     }
 
-//    -------------- admin access for user data --------------------
-
+    @Operation(summary = "Get problems created by a user")
+    @ApiResponse(responseCode = "200", description = "Problems list returned")
     @GetMapping("/problems/user/{userId}")
     public List<Problem> getProblemsByUser(@PathVariable UUID userId) {
         return problemService.getProblemsByUser(userId);
     }
 
+    @Operation(summary = "Get purchases by a user")
+    @ApiResponse(responseCode = "200", description = "Purchases list returned")
     @GetMapping("/purchases/user/{userId}")
     public List<Purchase> getPurchasesByUser(@PathVariable UUID userId) {
         return purchaseService.getPurchasesByUser(userId);
     }
 
+    @Operation(summary = "Get attempts by a user")
+    @ApiResponse(responseCode = "200", description = "Attempts list returned")
     @GetMapping("/attempts/user/{userId}")
     public List<Attempt> getAttemptsByUser(@PathVariable UUID userId) {
         return attemptService.getAttemptsByUser(userId);
     }
 
+    @Operation(summary = "Get progress records for a user")
+    @ApiResponse(responseCode = "200", description = "Progress list returned")
     @GetMapping("/progress/user/{userId}")
     public List<UserProgress> getProgressByUser(@PathVariable UUID userId) {
         return userProgressService.getProgressByUser(userId);

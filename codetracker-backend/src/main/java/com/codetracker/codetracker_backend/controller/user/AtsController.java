@@ -37,9 +37,14 @@ import com.codetracker.codetracker_backend.service.OpenAiService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Tag(name = "ATS Resume Checker", description = "Resume upload and AI-powered ATS scoring")
 @Slf4j
 @RestController
 @RequestMapping("/api/ats")
@@ -61,12 +66,19 @@ public class AtsController {
             "large",  new int[]{30, 20}
     );
 
+    @Operation(summary = "Get current user's credit balance")
+    @ApiResponse(responseCode = "200", description = "Credit balance returned")
     @GetMapping("/credits")
     public ResponseEntity<Map<String, Object>> getCredits(Authentication auth) {
         User user = resolveUser(auth);
         return ResponseEntity.ok(Map.of("credits", user.getCredits()));
     }
 
+    @Operation(summary = "Purchase a credit package (small/medium/large)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Credits purchased"),
+        @ApiResponse(responseCode = "400", description = "Invalid package type")
+    })
     @PostMapping("/purchase")
     public ResponseEntity<Map<String, Object>> purchaseCredits(
             @RequestBody Map<String, String> body,
@@ -104,6 +116,11 @@ public class AtsController {
         ));
     }
 
+    @Operation(summary = "Upload a resume for ATS analysis (costs credits)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Resume analyzed successfully"),
+        @ApiResponse(responseCode = "400", description = "Insufficient credits or invalid file")
+    })
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadResume(
             @RequestParam("resume") MultipartFile file,
@@ -205,6 +222,12 @@ public class AtsController {
         }
     }
 
+    @Operation(summary = "Delete a resume by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Resume deleted"),
+        @ApiResponse(responseCode = "403", description = "Not authorized"),
+        @ApiResponse(responseCode = "404", description = "Resume not found")
+    })
     @org.springframework.web.bind.annotation.DeleteMapping("/resumes/{id}")
     public ResponseEntity<Map<String, Object>> deleteResume(
             @org.springframework.web.bind.annotation.PathVariable UUID id,
@@ -232,6 +255,8 @@ public class AtsController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @Operation(summary = "Get all resumes uploaded by current user")
+    @ApiResponse(responseCode = "200", description = "List of resumes with analysis results")
     @GetMapping("/resumes")
     public ResponseEntity<List<Map<String, Object>>> getResumes(Authentication auth) {
         User user = resolveUser(auth);
