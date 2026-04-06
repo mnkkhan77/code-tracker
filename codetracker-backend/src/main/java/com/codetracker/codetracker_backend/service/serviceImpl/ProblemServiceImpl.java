@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.codetracker.codetracker_backend.dto.ExternalUrlDto;
@@ -40,6 +42,11 @@ public class ProblemServiceImpl implements ProblemService {
         return problemRepository.findAll().stream()
                 .map(ProblemDto::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ProblemDto> getAllProblems(Pageable pageable) {
+        return problemRepository.findAll(pageable).map(ProblemDto::toDto);
     }
 
     @Override

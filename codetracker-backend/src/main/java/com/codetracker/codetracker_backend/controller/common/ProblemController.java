@@ -3,6 +3,9 @@ package com.codetracker.codetracker_backend.controller.common;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codetracker.codetracker_backend.dto.ProblemDto;
@@ -39,11 +43,17 @@ public class ProblemController {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    @Operation(summary = "Get all problems")
+    @Operation(summary = "Get all problems (paginated when page param present)")
     @ApiResponse(responseCode = "200", description = "List of all problems")
     @GetMapping
-    public List<ProblemDto> getAllProblems() {
-        return problemService.getAllProblems();
+    public ResponseEntity<?> getAllProblems(
+            @RequestParam(required = false) Integer page,
+            @PageableDefault(size = 20, sort = "title") Pageable pageable) {
+        if (page != null) {
+            Page<ProblemDto> result = problemService.getAllProblems(pageable);
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.ok(problemService.getAllProblems());
     }
 
     @Operation(summary = "Get all problems with current user's progress")

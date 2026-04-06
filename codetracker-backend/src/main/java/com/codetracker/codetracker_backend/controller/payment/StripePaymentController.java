@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +34,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Tag(name = "Payments", description = "Stripe payment and webhook handling")
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
 public class StripePaymentController {
+
+    private static final int CREDITS_PACK_AMOUNT = 100;
 
     private final PurchaseRepository purchaseRepository;
     private final UserRepository userRepository;
@@ -52,9 +56,9 @@ public class StripePaymentController {
     private String frontendUrl;
 
     private static final Map<String, Long> PRODUCT_PRICES_CENTS = Map.of(
-            "SUBSCRIPTION",    999L,   // $9.99
-            "RESUME_ANALYSIS", 499L,   // $4.99
-            "CREDITS",         1499L   // $14.99
+            "SUBSCRIPTION",    999L,
+            "RESUME_ANALYSIS", 499L,
+            "CREDITS",         1499L
     );
 
     private static final Map<String, String> PRODUCT_NAMES = Map.of(
@@ -87,7 +91,6 @@ public class StripePaymentController {
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new IllegalStateException("User not found"));
 
-        // Create a PENDING purchase record
         Purchase purchase = new Purchase();
         purchase.setUser(user);
         purchase.setProductType(productType);
@@ -96,7 +99,6 @@ public class StripePaymentController {
         purchase.setStatus("PENDING");
         purchase = purchaseRepository.save(purchase);
 
-        // Create Stripe checkout session
         Stripe.apiKey = stripeSecretKey;
 
         SessionCreateParams params = SessionCreateParams.builder()
@@ -125,8 +127,6 @@ public class StripePaymentController {
                 .build();
 
         Session session = Session.create(params);
-
-        // Store session ID as provider reference
         purchase.setProviderRef(session.getId());
         purchaseRepository.save(purchase);
 
@@ -147,43 +147,68 @@ public class StripePaymentController {
         try {
             event = Webhook.constructEvent(new String(payload), sigHeader, webhookSecret);
         } catch (SignatureVerificationException e) {
+            log.warn("Stripe webhook signature verification failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature");
         }
 
+        log.info("Stripe webhook received: {}", event.getType());
+
         switch (event.getType()) {
             case "checkout.session.completed" -> {
-                Session session = (Session) event.getDataObjectDeserializer()
-                        .getObject().orElse(null);
+                Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
                 if (session != null) {
-                    completePurchase(session.getMetadata().get("purchaseId"));
+                    completePurchase(session.getMetadata().get("purchaseId"),
+                                     session.getMetadata().get("userId"));
                 }
             }
             case "checkout.session.expired" -> {
-                Session session = (Session) event.getDataObjectDeserializer()
-                        .getObject().orElse(null);
+                Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
                 if (session != null) {
                     failPurchase(session.getMetadata().get("purchaseId"));
                 }
             }
+            case "payment_intent.payment_failed" -> {
+                // payment_intent.payment_failed doesn't carry purchaseId metadata directly,
+                // but the associated checkout.session.expired will fire too.
+                // Log it for visibility.
+                log.warn("Payment failed event received: {}", event.getId());
+            }
+            default -> log.debug("Unhandled Stripe event: {}", event.getType());
         }
 
         return ResponseEntity.ok("received");
     }
 
-    private void completePurchase(String purchaseId) {
+    private void completePurchase(String purchaseId, String userId) {
         if (purchaseId == null) return;
-        purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
+        purchaseRepository.findById(UUID.fromString(purchaseId)).ifPresent(purchase -> {
+            if ("COMPLETED".equals(purchase.getStatus())) {
+                log.warn("Purchase {} already completed, skipping duplicate webhook", purchaseId);
+                return;
+            }
             purchase.setStatus("COMPLETED");
             purchase.setPaidAt(LocalDateTime.now());
             purchaseRepository.save(purchase);
+            log.info("Purchase {} completed (type={})", purchaseId, purchase.getProductType());
+
+            // Grant credits if product is CREDITS pack
+            if ("CREDITS".equals(purchase.getProductType()) && userId != null) {
+                userRepository.findById(UUID.fromString(userId)).ifPresent(user -> {
+                    user.setCredits(user.getCredits() + CREDITS_PACK_AMOUNT);
+                    userRepository.save(user);
+                    log.info("Granted {} credits to user {}", CREDITS_PACK_AMOUNT, userId);
+                });
+            }
         });
     }
 
     private void failPurchase(String purchaseId) {
         if (purchaseId == null) return;
-        purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
+        purchaseRepository.findById(UUID.fromString(purchaseId)).ifPresent(purchase -> {
+            if ("COMPLETED".equals(purchase.getStatus())) return; // never downgrade completed
             purchase.setStatus("FAILED");
             purchaseRepository.save(purchase);
+            log.info("Purchase {} marked FAILED", purchaseId);
         });
     }
 }

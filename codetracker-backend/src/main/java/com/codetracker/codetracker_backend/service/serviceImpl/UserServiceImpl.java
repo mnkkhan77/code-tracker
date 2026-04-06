@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.codetracker.codetracker_backend.dto.UserDto;
@@ -16,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -27,19 +31,22 @@ public class UserServiceImpl implements UserService {
     public User createUser(@NonNull User user) {
         try {
             User savedUser = userRepository.save(user);
-            System.out.println("User saved: " + savedUser.getEmail());
+            log.info("User saved: {}", savedUser.getEmail());
             return savedUser;
         } catch (Exception e) {
-            System.err.println("User save failed: " + e.getMessage());
-            e.printStackTrace();
+            log.error("User save failed: {}", e.getMessage(), e);
             throw e;
         }
     }
 
-
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     @Override

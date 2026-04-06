@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,11 +31,29 @@ public class AdminController {
     private final AttemptService attemptService;
     private final UserProgressService userProgressService;
 
-    @Operation(summary = "Get all users")
+    @Operation(summary = "Get all users (paginated when page param present)")
     @ApiResponse(responseCode = "200", description = "List of all users")
     @GetMapping
-    public List<AdminUserDto> getAllUsers() {
-        return userService.getAllUsers().stream()
+    public ResponseEntity<?> getAllUsers(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer page,
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        if (page != null) {
+            Page<AdminUserDto> result = userService.getAllUsers(pageable)
+                    .map(u -> new AdminUserDto(
+                            u.getId().toString(),
+                            u.getName(),
+                            u.getEmail(),
+                            u.getRole() != null ? u.getRole().name() : "USER",
+                            u.getBio(),
+                            u.getCreatedDate() != null ? u.getCreatedDate().toString() : null,
+                            (int) u.getProgressList().stream()
+                                    .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                                    .count(),
+                            "active"
+                    ));
+            return ResponseEntity.ok(result);
+        }
+        List<AdminUserDto> all = userService.getAllUsers().stream()
                 .map(u -> new AdminUserDto(
                         u.getId().toString(),
                         u.getName(),
@@ -46,6 +67,7 @@ public class AdminController {
                         "active"
                 ))
                 .collect(Collectors.toList());
+        return ResponseEntity.ok(all);
     }
 
     @Operation(summary = "Get a user by ID")
