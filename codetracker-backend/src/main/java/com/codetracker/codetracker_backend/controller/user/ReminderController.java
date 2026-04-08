@@ -1,7 +1,7 @@
 package com.codetracker.codetracker_backend.controller.user;
 
+import com.codetracker.codetracker_backend.dto.ReminderProblemDto;
 import com.codetracker.codetracker_backend.entity.Reminder;
-import com.codetracker.codetracker_backend.entity.ReminderProblem;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.ReminderProblemService;
@@ -82,9 +82,11 @@ public class ReminderController {
     @Operation(summary = "Get all problems due for spaced repetition review")
     @ApiResponse(responseCode = "200", description = "List of due ReminderProblems")
     @GetMapping("/due")
-    public List<ReminderProblem> getDueReviews(Principal principal) {
+    public List<ReminderProblemDto> getDueReviews(Principal principal) {
         User user = resolveUser(principal);
-        return reminderProblemService.getDueReviews(user.getId());
+        return reminderProblemService.getDueReviews(user.getId()).stream()
+                .map(ReminderProblemDto::from)
+                .toList();
     }
 
     @Operation(summary = "Schedule a problem for spaced repetition")
@@ -93,12 +95,12 @@ public class ReminderController {
         @ApiResponse(responseCode = "404", description = "Problem not found")
     })
     @PostMapping("/schedule")
-    public ReminderProblem scheduleReview(
+    public ReminderProblemDto scheduleReview(
             @RequestParam UUID problemId,
             Principal principal
     ) {
         User user = resolveUser(principal);
-        return reminderProblemService.scheduleReview(user.getId(), problemId);
+        return ReminderProblemDto.from(reminderProblemService.scheduleReview(user.getId(), problemId));
     }
 
     @Operation(summary = "Record a spaced repetition review result (quality 0-5)")
@@ -108,12 +110,12 @@ public class ReminderController {
         @ApiResponse(responseCode = "404", description = "ReminderProblem not found")
     })
     @PostMapping("/review/{reminderProblemId}")
-    public ResponseEntity<ReminderProblem> recordReview(
+    public ResponseEntity<ReminderProblemDto> recordReview(
             @PathVariable UUID reminderProblemId,
             @RequestBody Map<String, Integer> body
     ) {
         int quality = body.getOrDefault("quality", 0);
-        return ResponseEntity.ok(reminderProblemService.recordReview(reminderProblemId, quality));
+        return ResponseEntity.ok(ReminderProblemDto.from(reminderProblemService.recordReview(reminderProblemId, quality)));
     }
 
     private User resolveUser(Principal principal) {

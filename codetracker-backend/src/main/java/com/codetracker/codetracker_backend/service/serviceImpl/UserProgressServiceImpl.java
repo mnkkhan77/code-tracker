@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
+import com.codetracker.codetracker_backend.service.ReminderProblemService;
 import com.codetracker.codetracker_backend.service.UserProgressService;
 
 import lombok.NonNull;
@@ -27,6 +29,7 @@ public class UserProgressServiceImpl implements UserProgressService {
     private final UserProgressRepository userProgressRepository;
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
+    private final ReminderProblemService reminderProblemService;
 
     @Override
     public List<ProgressResponseDto> getProgressByUserId(UUID userId) {
@@ -61,11 +64,17 @@ public class UserProgressServiceImpl implements UserProgressService {
                 .findByUserIdAndProblemId(user.getId(), problem.getId())
                 .orElse(new UserProgress(user, problem));
 
-        // update fields
-        progress.setStatus(dto.getStatus());
-        progress.setBestTime(dto.getBestTime());
+        // only update fields that are explicitly provided
+        if (dto.getStatus() != null) progress.setStatus(dto.getStatus());
+        if (dto.getBestTime() != null) progress.setBestTime(dto.getBestTime());
 
-        UserProgress saved = userProgressRepository.save(progress);
+        UserProgress saved = userProgressRepository.save(Objects.requireNonNull(progress));
+
+        // auto-schedule for spaced repetition when first marked completed
+        if ("completed".equalsIgnoreCase(dto.getStatus())) {
+            reminderProblemService.scheduleReview(user.getId(), problem.getId());
+        }
+
         return ProgressResponseDto.toDto(saved);
     }
 

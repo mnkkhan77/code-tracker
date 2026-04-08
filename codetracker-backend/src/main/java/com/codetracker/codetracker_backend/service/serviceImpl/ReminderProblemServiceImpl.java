@@ -32,7 +32,7 @@ public class ReminderProblemServiceImpl implements ReminderProblemService {
     @Override
     public List<ReminderProblem> getDueReviews(UUID userId) {
         return reminderProblemRepository
-                .findByReminderUserIdAndNextReviewDateBefore(userId, LocalDateTime.now());
+                .findByReminderUserIdAndNextReviewDateBefore(userId, LocalDateTime.now().plusDays(1));
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ReminderProblemServiceImpl implements ReminderProblemService {
                             .repetitionCount(0)
                             .intervalDays(1)
                             .easeFactor(DEFAULT_EASE_FACTOR)
-                            .nextReviewDate(LocalDateTime.now().plusDays(1))
+                            .nextReviewDate(LocalDateTime.now().minusSeconds(1))
                             .build();
                     ReminderProblem saved = reminderProblemRepository.save(Objects.requireNonNull(newRp));
                     return Objects.requireNonNull(saved);

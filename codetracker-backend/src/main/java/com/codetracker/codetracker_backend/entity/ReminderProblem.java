@@ -25,7 +25,7 @@ public class ReminderProblem {
     @JoinColumn(name = "reminder_id", nullable = false)
     private Reminder reminder;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem;
 
