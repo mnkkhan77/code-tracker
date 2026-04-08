@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,7 +38,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public UserDto updateMyProfile(@NonNull UUID userId, UserDto request) {
-        @NonNull User user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         if (request.getName() != null) user.setName(request.getName());
@@ -46,7 +47,7 @@ public class ProfileServiceImpl implements ProfileService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        User updated = userRepository.save(user);
+        User updated = userRepository.save(Objects.requireNonNull(user));
 
         return new UserDto(updated.getName(), updated.getBio(), updated.getEmail(), null);
     }

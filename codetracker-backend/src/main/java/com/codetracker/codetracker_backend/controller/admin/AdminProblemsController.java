@@ -20,7 +20,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
+import org.springframework.lang.NonNull;
 
 @io.swagger.v3.oas.annotations.tags.Tag(name = "Admin - Problems", description = "Problem management (admin only)")
 @RestController
@@ -48,7 +51,7 @@ public class AdminProblemsController {
         @ApiResponse(responseCode = "404", description = "Problem not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<AdminProblemResponseDto> getProblem(@PathVariable UUID id) {
+    public ResponseEntity<AdminProblemResponseDto> getProblem(@PathVariable @NonNull UUID id) {
         return problemRepository.findById(id)
                 .map(AdminProblemResponseDto::fromEntity)
                 .map(ResponseEntity::ok)
@@ -59,8 +62,9 @@ public class AdminProblemsController {
     @ApiResponse(responseCode = "201", description = "Problem created")
     @PostMapping
     public ResponseEntity<AdminProblemResponseDto> createProblem(@RequestBody AdminProblemRequestDto req) {
-        Topic topic = topicRepository.findById(req.getTopicId())
-                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + req.getTopicId()));
+        UUID topicId = Objects.requireNonNull(req.getTopicId(), "topicId required");
+        Topic topic = topicRepository.findById(topicId)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicId));
 
         Problem problem = new Problem();
         problem.setTitle(req.getTitle());
@@ -72,7 +76,7 @@ public class AdminProblemsController {
         Problem saved = problemRepository.save(problem);
         saveExternalUrls(saved, req.getExternalUrls());
 
-        Problem reloaded = problemRepository.findById(saved.getId()).orElseThrow();
+        Problem reloaded = problemRepository.findById(Objects.requireNonNull(saved.getId())).orElseThrow();
         return ResponseEntity.status(HttpStatus.CREATED).body(AdminProblemResponseDto.fromEntity(reloaded));
     }
 
@@ -83,18 +87,19 @@ public class AdminProblemsController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<AdminProblemResponseDto> updateProblem(
-            @PathVariable UUID id, @RequestBody AdminProblemRequestDto req) {
+            @PathVariable @NonNull UUID id, @RequestBody AdminProblemRequestDto req) {
 
-        Problem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Problem not found: " + id));
+        Problem problem = Objects.requireNonNull(problemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Problem not found: " + id)));
 
         if (req.getTitle() != null) problem.setTitle(req.getTitle());
         if (req.getDifficulty() != null) problem.setDifficulty(req.getDifficulty());
         if (req.getSlug() != null) problem.setSlug(req.getSlug());
 
-        if (req.getTopicId() != null) {
-            Topic topic = topicRepository.findById(req.getTopicId())
-                    .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + req.getTopicId()));
+        UUID reqTopicId = req.getTopicId();
+        if (reqTopicId != null) {
+            Topic topic = topicRepository.findById(reqTopicId)
+                    .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + reqTopicId));
             problem.setTopic(topic);
         }
 
@@ -103,7 +108,7 @@ public class AdminProblemsController {
         }
 
         if (req.getExternalUrls() != null) {
-            externalUrlRepository.deleteAll(externalUrlRepository.findByProblemId(id));
+            externalUrlRepository.deleteAll(Objects.requireNonNull(externalUrlRepository.findByProblemId(id)));
             problemRepository.save(problem);
             saveExternalUrls(problem, req.getExternalUrls());
         } else {
@@ -120,7 +125,7 @@ public class AdminProblemsController {
         @ApiResponse(responseCode = "404", description = "Problem not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProblem(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteProblem(@PathVariable @NonNull UUID id) {
         if (!problemRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }

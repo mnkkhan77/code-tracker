@@ -2,6 +2,7 @@ package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     public Page<ProblemDto> getAllProblems(Pageable pageable) {
-        return problemRepository.findAll(pageable).map(ProblemDto::toDto);
+        return problemRepository.findAll(Objects.requireNonNull(pageable)).map(ProblemDto::toDto);
     }
 
     @Override

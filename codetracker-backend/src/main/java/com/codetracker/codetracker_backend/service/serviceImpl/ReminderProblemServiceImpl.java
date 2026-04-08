@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -21,7 +22,6 @@ import java.util.UUID;
 @Transactional
 public class ReminderProblemServiceImpl implements ReminderProblemService {
 
-    @SuppressWarnings("unused") // used in ReminderProblem.builder().easeFactor(DEFAULT_EASE_FACTOR)
     private static final double DEFAULT_EASE_FACTOR = 2.5;
     private static final double MIN_EASE_FACTOR = 1.3;
 
@@ -37,7 +37,7 @@ public class ReminderProblemServiceImpl implements ReminderProblemService {
 
     @Override
     public ReminderProblem scheduleReview(UUID userId, UUID problemId) {
-        Problem problem = problemRepository.findById(problemId)
+        Problem problem = problemRepository.findById(Objects.requireNonNull(problemId))
                 .orElseThrow(() -> new RuntimeException("Problem not found: " + problemId));
 
         // Find or create a Reminder container for this user+problem
@@ -54,17 +54,19 @@ public class ReminderProblemServiceImpl implements ReminderProblemService {
 
         // Idempotent: return existing if already scheduled
         return reminderProblemRepository
-                .findByReminderIdAndProblemId(reminder.getId(), problemId)
-                .orElseGet(() -> reminderProblemRepository.save(
-                        ReminderProblem.builder()
-                                .reminder(reminder)
-                                .problem(problem)
-                                .repetitionCount(0)
-                                .intervalDays(1)
-                                .easeFactor(DEFAULT_EASE_FACTOR)
-                                .nextReviewDate(LocalDateTime.now().plusDays(1))
-                                .build()
-                ));
+                .findByReminderIdAndProblemId(Objects.requireNonNull(reminder.getId()), problemId)
+                .orElseGet(() -> {
+                    ReminderProblem newRp = ReminderProblem.builder()
+                            .reminder(reminder)
+                            .problem(problem)
+                            .repetitionCount(0)
+                            .intervalDays(1)
+                            .easeFactor(DEFAULT_EASE_FACTOR)
+                            .nextReviewDate(LocalDateTime.now().plusDays(1))
+                            .build();
+                    ReminderProblem saved = reminderProblemRepository.save(Objects.requireNonNull(newRp));
+                    return Objects.requireNonNull(saved);
+                });
     }
 
     @Override
@@ -73,7 +75,7 @@ public class ReminderProblemServiceImpl implements ReminderProblemService {
             throw new IllegalArgumentException("Quality must be between 0 and 5");
         }
 
-        ReminderProblem rp = reminderProblemRepository.findById(reminderProblemId)
+        ReminderProblem rp = reminderProblemRepository.findById(Objects.requireNonNull(reminderProblemId))
                 .orElseThrow(() -> new RuntimeException("ReminderProblem not found: " + reminderProblemId));
 
         // SM-2 algorithm

@@ -181,7 +181,7 @@ public class StripePaymentController {
 
     private void completePurchase(String purchaseId, String userId) {
         if (purchaseId == null) return;
-        purchaseRepository.findById(UUID.fromString(purchaseId)).ifPresent(purchase -> {
+        purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
             if ("COMPLETED".equals(purchase.getStatus())) {
                 log.warn("Purchase {} already completed, skipping duplicate webhook", purchaseId);
                 return;
@@ -193,7 +193,7 @@ public class StripePaymentController {
 
             // Grant credits if product is CREDITS pack
             if ("CREDITS".equals(purchase.getProductType()) && userId != null) {
-                userRepository.findById(UUID.fromString(userId)).ifPresent(user -> {
+                userRepository.findById(Objects.requireNonNull(UUID.fromString(userId))).ifPresent(user -> {
                     user.setCredits(user.getCredits() + CREDITS_PACK_AMOUNT);
                     userRepository.save(user);
                     log.info("Granted {} credits to user {}", CREDITS_PACK_AMOUNT, userId);
@@ -204,7 +204,7 @@ public class StripePaymentController {
 
     private void failPurchase(String purchaseId) {
         if (purchaseId == null) return;
-        purchaseRepository.findById(UUID.fromString(purchaseId)).ifPresent(purchase -> {
+        purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
             if ("COMPLETED".equals(purchase.getStatus())) return; // never downgrade completed
             purchase.setStatus("FAILED");
             purchaseRepository.save(purchase);

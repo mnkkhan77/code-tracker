@@ -17,6 +17,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -230,7 +231,7 @@ public class AtsController {
     })
     @org.springframework.web.bind.annotation.DeleteMapping("/resumes/{id}")
     public ResponseEntity<Map<String, Object>> deleteResume(
-            @org.springframework.web.bind.annotation.PathVariable UUID id,
+            @org.springframework.web.bind.annotation.PathVariable @NonNull UUID id,
             Authentication auth) {
 
         User user = resolveUser(auth);
