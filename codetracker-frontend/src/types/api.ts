@@ -25,7 +25,12 @@ export interface UserStatsDto {
   notStarted: number;
   progressPercentage: number;
   totalTimeSpent: number;
-  upcomingReviews?: ReminderProblem[];
+  easyTotal: number;
+  mediumTotal: number;
+  hardTotal: number;
+  easyCompleted: number;
+  mediumCompleted: number;
+  hardCompleted: number;
 }
 
 // --- Topics & Problems ---
@@ -82,13 +87,11 @@ export interface UpdateProgressDto {
 // --- Attempts ---
 export interface Attempt {
   id: string;
-  duration?: number; // seconds/minutes (backend field)
-  date?: string;     // ISO datetime from backend
+  duration?: number;
+  date?: string;
   successful?: boolean;
-  // legacy frontend-only fields
-  userId?: string;
   problemId?: string;
-  timestamp?: number;
+  problemTitle?: string;
 }
 
 export interface AddAttemptDto {
