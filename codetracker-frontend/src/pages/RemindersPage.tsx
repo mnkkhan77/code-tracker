@@ -93,7 +93,7 @@ function RemindersPageContent() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              <span>Due for Review ({dueReviews.length})</span>
+              <span>Due &amp; Upcoming — next 24h ({dueReviews.length})</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -127,11 +127,17 @@ function RemindersPageContent() {
                           </span>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/topics/${rp.problem?.topicId ?? ""}`}>
+                      {rp.problem?.topicSlug ? (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/topics/${rp.problem.topicSlug}`}>
+                            View Problem
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button variant="outline" size="sm" disabled>
                           View Problem
-                        </Link>
-                      </Button>
+                        </Button>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap gap-2">

@@ -33,6 +33,7 @@ export default function ProblemsPage() {
     loading,
     updateProblemStatus,
     updateProblemBestTime,
+    scheduleReview,
     addProblem,
     updateProblem,
     deleteProblem,
@@ -148,6 +149,7 @@ export default function ProblemsPage() {
               problems={filteredProblems || []}
               onStatusChange={updateProblemStatus}
               onBestTimeChange={updateProblemBestTime}
+              onScheduleReview={scheduleReview}
               openEditModal={openEditModal}
               setProblemToDelete={setProblemToDelete}
             />

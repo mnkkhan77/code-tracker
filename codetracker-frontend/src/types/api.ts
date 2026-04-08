@@ -138,8 +138,12 @@ export interface Reminder {
 /** Spaced repetition entry — one problem scheduled for review via SM-2 */
 export interface ReminderProblem {
   id: string;
-  reminder?: Reminder;
-  problem?: Problem;
+  problem?: {
+    id: string;
+    title: string;
+    difficulty: string;
+    topicSlug: string | null;
+  };
   repetitionCount: number;
   intervalDays: number;
   easeFactor: number;

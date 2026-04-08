@@ -1,4 +1,5 @@
 // src/hooks/useProblemsPage.tsx
+import { scheduleReviewApi } from "@/api/remindersAPI";
 import { useAuth } from "@/hooks/use-auth";
 import { ProblemModel } from "@/mappers/problemMapper";
 import * as problemsService from "@/services/problemsService";
@@ -51,13 +52,12 @@ export function useProblemsPage() {
   );
 
   const updateProblemBestTime = useCallback(
-    async (problemId: string, newStatus: ProgressStatus, newTime: number) => {
+    async (problemId: string, newTime: number) => {
       if (!user || isAdmin) return;
       try {
         await progressService.upsertProgress({
           problemId,
-          bestTime: newTime ?? undefined,
-          status: newStatus,
+          bestTime: newTime,
         });
         toast.success("Best time updated!");
         await fetchProblems();
@@ -66,6 +66,19 @@ export function useProblemsPage() {
       }
     },
     [user, isAdmin, fetchProblems],
+  );
+
+  const scheduleReview = useCallback(
+    async (problemId: string) => {
+      if (!user || isAdmin) return;
+      try {
+        await scheduleReviewApi(problemId);
+        toast.success("Scheduled for spaced repetition review!");
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to schedule review.");
+      }
+    },
+    [user, isAdmin],
   );
 
   // ---- Admin CRUD ----
@@ -134,6 +147,7 @@ export function useProblemsPage() {
     loading,
     updateProblemStatus,
     updateProblemBestTime,
+    scheduleReview,
     addProblem,
     updateProblem,
     deleteProblem,

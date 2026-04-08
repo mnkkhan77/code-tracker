@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { Problem as BaseProblem } from "@/types/api";
-import { Edit, Trash2 } from "lucide-react";
+import { Bell, Edit, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BestTimeEditor } from "./BestTimeEditor";
 
@@ -34,6 +34,7 @@ interface ProblemsDataTableProps {
     newStatus: "not_started" | "in_progress" | "completed"
   ) => void;
   onBestTimeChange: (problemId: string, newTime: number) => void;
+  onScheduleReview?: (problemId: string) => void;
   openEditModal: (problem: BaseProblem) => void;
   setProblemToDelete: (problemId: string) => void;
 }
@@ -42,6 +43,7 @@ export function ProblemsDataTable({
   problems,
   onStatusChange,
   onBestTimeChange,
+  onScheduleReview,
   openEditModal,
   setProblemToDelete,
 }: ProblemsDataTableProps) {
@@ -87,6 +89,9 @@ export function ProblemsDataTable({
             <TableHead>Links</TableHead>
             {showStatusColumn && (
               <TableHead className="w-[180px]">Best Time</TableHead>
+            )}
+            {showStatusColumn && (
+              <TableHead className="w-[60px]"></TableHead>
             )}
             <TableHead className="hidden w-[120px] md:table-cell">
               Difficulty
@@ -172,6 +177,20 @@ export function ProblemsDataTable({
                         onBestTimeChange(problem.id, newTime)
                       }
                     />
+                  </TableCell>
+                )}
+                {showStatusColumn && (
+                  <TableCell>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      title="Schedule for spaced repetition review"
+                      onClick={(e) => { e.stopPropagation(); onScheduleReview?.(problem.id); }}
+                    >
+                      <Bell className="h-4 w-4" />
+                      <span className="sr-only">Schedule review</span>
+                    </Button>
                   </TableCell>
                 )}
                 <TableCell className="hidden md:table-cell">
