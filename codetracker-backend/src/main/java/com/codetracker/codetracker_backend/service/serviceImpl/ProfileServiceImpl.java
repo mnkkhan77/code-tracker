@@ -1,8 +1,10 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,6 +75,23 @@ public class ProfileServiceImpl implements ProfileService {
                 ? (int) Math.round((completed * 100.0) / totalProblems)
                 : 0;
 
-        return new UserStatsDto(totalProblems, completed, inProgress, notStarted, totalTimeSpent, progressPercentage);
+        Map<String, Long> totalByDifficulty = allProblems.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getDifficulty() != null ? p.getDifficulty().toLowerCase() : "unknown",
+                        Collectors.counting()));
+
+        Map<String, Long> completedByDifficulty = progressList.stream()
+                .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.groupingBy(
+                        p -> p.getProblem().getDifficulty() != null ? p.getProblem().getDifficulty().toLowerCase() : "unknown",
+                        Collectors.counting()));
+
+        return new UserStatsDto(totalProblems, completed, inProgress, notStarted, totalTimeSpent, progressPercentage,
+                totalByDifficulty.getOrDefault("easy", 0L),
+                totalByDifficulty.getOrDefault("medium", 0L),
+                totalByDifficulty.getOrDefault("hard", 0L),
+                completedByDifficulty.getOrDefault("easy", 0L),
+                completedByDifficulty.getOrDefault("medium", 0L),
+                completedByDifficulty.getOrDefault("hard", 0L));
     }
 }

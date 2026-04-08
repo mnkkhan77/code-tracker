@@ -1,21 +1,27 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.codetracker.codetracker_backend.dto.ProgressRequestDto;
 import com.codetracker.codetracker_backend.dto.ProgressResponseDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
+import java.time.LocalDateTime;
+
+import com.codetracker.codetracker_backend.entity.Attempt;
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
+import com.codetracker.codetracker_backend.service.AttemptService;
 import com.codetracker.codetracker_backend.service.ReminderProblemService;
 import com.codetracker.codetracker_backend.service.UserProgressService;
 
@@ -30,6 +36,7 @@ public class UserProgressServiceImpl implements UserProgressService {
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
     private final ReminderProblemService reminderProblemService;
+    private final AttemptService attemptService;
 
     @Override
     public List<ProgressResponseDto> getProgressByUserId(UUID userId) {
@@ -70,6 +77,17 @@ public class UserProgressServiceImpl implements UserProgressService {
 
         UserProgress saved = userProgressRepository.save(Objects.requireNonNull(progress));
 
+        // auto-record attempt when bestTime is saved
+        if (dto.getBestTime() != null) {
+            boolean isCompleted = "completed".equalsIgnoreCase(saved.getStatus());
+            Attempt attempt = new Attempt();
+            attempt.setDuration(dto.getBestTime().intValue());
+            attempt.setDate(LocalDateTime.now());
+            attempt.setSuccessful(isCompleted);
+            attempt.setUserProgress(saved);
+            attemptService.createAttempt(attempt);
+        }
+
         // auto-schedule for spaced repetition when first marked completed
         if ("completed".equalsIgnoreCase(dto.getStatus())) {
             reminderProblemService.scheduleReview(user.getId(), problem.getId());
@@ -106,6 +124,25 @@ public class UserProgressServiceImpl implements UserProgressService {
                 ? (int) Math.round((completed * 100.0) / totalProblems)
                 : 0;
 
-        return new UserStatsDto(totalProblems, completed, inProgress, notStarted, totalTimeSpent, progressPercentage);
+        // difficulty breakdown
+        Map<String, Long> totalByDifficulty = allProblems.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getDifficulty() != null ? p.getDifficulty().toLowerCase() : "unknown",
+                        Collectors.counting()));
+
+        Map<String, Long> completedByDifficulty = progressList.stream()
+                .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.groupingBy(
+                        p -> p.getProblem().getDifficulty() != null ? p.getProblem().getDifficulty().toLowerCase() : "unknown",
+                        Collectors.counting()));
+
+        UserStatsDto dto = new UserStatsDto(totalProblems, completed, inProgress, notStarted, totalTimeSpent, progressPercentage,
+                totalByDifficulty.getOrDefault("easy", 0L),
+                totalByDifficulty.getOrDefault("medium", 0L),
+                totalByDifficulty.getOrDefault("hard", 0L),
+                completedByDifficulty.getOrDefault("easy", 0L),
+                completedByDifficulty.getOrDefault("medium", 0L),
+                completedByDifficulty.getOrDefault("hard", 0L));
+        return dto;
     }
 }

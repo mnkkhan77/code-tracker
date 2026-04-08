@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.user;
 
+import com.codetracker.codetracker_backend.dto.AttemptResponseDto;
 import com.codetracker.codetracker_backend.entity.Attempt;
 import com.codetracker.codetracker_backend.repository.UserRepository;
 import com.codetracker.codetracker_backend.service.AttemptService;
@@ -25,11 +26,13 @@ public class AttemptController {
     @Operation(summary = "Get all attempts for current user")
     @ApiResponse(responseCode = "200", description = "List of attempts")
     @GetMapping("/me")
-    public List<Attempt> getMyAttempts(Authentication auth) {
+    public List<AttemptResponseDto> getMyAttempts(Authentication auth) {
         UUID userId = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
-        return attemptService.getAttemptsByUser(userId);
+        return attemptService.getAttemptsByUser(userId).stream()
+                .map(AttemptResponseDto::from)
+                .toList();
     }
 
     @Operation(summary = "Get all attempts for a specific problem")

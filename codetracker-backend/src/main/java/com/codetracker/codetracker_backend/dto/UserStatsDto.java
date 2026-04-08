@@ -14,4 +14,12 @@ public class UserStatsDto {
     private long notStarted;
     private double totalTimeSpent;
     private int progressPercentage;
+
+    // difficulty breakdown
+    private long easyTotal;
+    private long mediumTotal;
+    private long hardTotal;
+    private long easyCompleted;
+    private long mediumCompleted;
+    private long hardCompleted;
 }

@@ -15,6 +15,8 @@ public class Attempt {
     private UUID id;
 
     private Integer duration; // in minutes/seconds
+
+    @Column(name = "attempt_date")
     private LocalDateTime date;
     private Boolean successful;
 
