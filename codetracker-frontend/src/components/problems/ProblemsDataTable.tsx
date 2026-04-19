@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { Problem as BaseProblem } from "@/types/api";
-import { Bell, Edit, Trash2 } from "lucide-react";
+import { Bell, Edit, Loader2, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BestTimeEditor } from "./BestTimeEditor";
 
@@ -29,6 +29,7 @@ type Problem = BaseProblem & {
 
 interface ProblemsDataTableProps {
   problems: Problem[];
+  loading?: boolean;
   onStatusChange: (
     problemId: string,
     newStatus: "not_started" | "in_progress" | "completed"
@@ -41,6 +42,7 @@ interface ProblemsDataTableProps {
 
 export function ProblemsDataTable({
   problems,
+  loading = false,
   onStatusChange,
   onBestTimeChange,
   onScheduleReview,
@@ -77,7 +79,12 @@ export function ProblemsDataTable({
   };
 
   return (
-    <div className="rounded-md border">
+    <div className="relative rounded-md border">
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>

@@ -5,9 +5,7 @@ import { Ctx, User } from "@/types/api";
 import {
   createContext,
   ReactNode,
-  useCallback,
   useContext,
-  useEffect,
   useState,
 } from "react";
 import { toast } from "sonner";
@@ -15,34 +13,20 @@ import { toast } from "sonner";
 const UserDataContext = createContext<Ctx | undefined>(undefined);
 
 export const UserDataProvider = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [updating, setUpdating] = useState(false);
   const [profile, setProfile] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async () => {
-    if (!isAuthenticated) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await authService.getMe();
-      setProfile(data);
-    } catch {
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
+  // Sync profile from auth user (no extra getMe() call)
+  const resolvedProfile = profile ?? user;
 
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  const refreshProfile = async () => {
+    // no-op: use-auth owns the canonical user state
+  };
 
   const updateProfile = async (updated: Partial<User>) => {
-    if (!profile) return;
-    setLoading(true);
+    if (!resolvedProfile) return;
+    setUpdating(true);
     try {
       const updatedProfile = await authService.updateMe(updated);
       setProfile(updatedProfile);
@@ -51,13 +35,18 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Failed to update profile.");
       throw new Error("Profile update failed");
     } finally {
-      setLoading(false);
+      setUpdating(false);
     }
   };
 
   return (
     <UserDataContext.Provider
-      value={{ profile, loading, refreshProfile: fetchProfile, updateProfile }}
+      value={{
+        profile: resolvedProfile,
+        loading: authLoading || updating,
+        refreshProfile,
+        updateProfile,
+      }}
     >
       {children}
     </UserDataContext.Provider>

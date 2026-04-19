@@ -1,7 +1,7 @@
 // src/hooks/useTopicsPageData.tsx
 import { ProblemModel } from "@/mappers/problemMapper";
 import * as problemsService from "@/services/problemsService";
-import { Topic } from "@/types/api";
+import { PageResponse, Topic } from "@/types/api";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "./use-auth";
 
@@ -24,12 +24,15 @@ export function useTopicsPageData() {
         const [topicsData, problemsData] = await Promise.all([
           problemsService.getTopics(),
           user
-            ? problemsService.getProblemsWithProgress()
+            ? problemsService.getProblemsWithProgress(0, 1000)
             : problemsService.getAllProblems(),
         ]);
 
         setTopics(topicsData || []);
-        setProblems(problemsData || []);
+        const problems = user
+          ? (problemsData as PageResponse<ProblemModel>).content
+          : (problemsData as ProblemModel[]);
+        setProblems(problems || []);
       } catch (error) {
         console.error("Failed to load topics page data", error);
       } finally {
@@ -37,7 +40,7 @@ export function useTopicsPageData() {
       }
     };
     fetchData();
-  }, [user, isAdmin]);
+  }, [user?.id, isAdmin]);
 
   const topicsWithStats: TopicWithStats[] = useMemo(() => {
     if (loading) return [];

@@ -1,71 +1,139 @@
 // src/hooks/useProblemsPage.tsx
+import { getAllTags } from "@/api/problemsAPI";
 import { scheduleReviewApi } from "@/api/remindersAPI";
 import { useAuth } from "@/hooks/use-auth";
+import { usePaginationState } from "@/hooks/usePaginationState";
 import { ProblemModel } from "@/mappers/problemMapper";
 import * as problemsService from "@/services/problemsService";
 import * as progressService from "@/services/progressService";
-import { Problem, ProgressStatus } from "@/types/api";
-import { useCallback, useEffect, useState } from "react";
+import { PageResponse, Problem, ProgressStatus } from "@/types/api";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useProblemFilters } from "./useProblemFilters";
+
+type CachedPage = Pick<PageResponse<ProblemModel>, "content" | "page">;
+
+function buildCacheKey(
+  page: number, difficulty: string, status: string, tags: string[],
+  search: string, sortBy: string, sortDir: string,
+) {
+  return [page, difficulty, status, [...tags].sort().join(","), search, sortBy, sortDir].join("|");
+}
 
 export function useProblemsPage() {
   const { user, isAdmin } = useAuth();
   const [problems, setProblems] = useState<ProblemModel[]>([]);
   const [loading, setLoading] = useState(true);
+  const { page, setPage, totalPages, totalElements, PAGE_SIZE, updateFromPage, resetPage } =
+    usePaginationState(20);
 
-  const fetchProblems = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data =
-        user && !isAdmin
-          ? await problemsService.getProblemsWithProgress()
-          : await problemsService.getAllProblems();
-      setProblems(data || []);
-    } catch (error) {
-      toast.error("Failed to load problems data.");
-    } finally {
-      setLoading(false);
+  const [statusFilter, setStatusFilterState] = useState<string>("all");
+  const [difficultyFilter, setDifficultyFilterState] = useState<string>("all");
+  const [tagFilter, setTagFilterState] = useState<string[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
+
+  // Search: searchInput updates immediately (UI), search is debounced (API)
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
+  // Sort
+  const [sortBy, setSortByState] = useState("title");
+  const [sortDir, setSortDirState] = useState("asc");
+
+  const cache = useRef(new Map<string, CachedPage>());
+  const hasEverLoaded = useRef(false);
+  const clearCache = useCallback(() => cache.current.clear(), []);
+
+  // Debounce search input → search state
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearch(searchInput);
+      resetPage();
+    }, 400);
+    return () => clearTimeout(id);
+  }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setStatusFilter = useCallback((val: string) => { setStatusFilterState(val); resetPage(); }, [resetPage]);
+  const setDifficultyFilter = useCallback((val: string) => { setDifficultyFilterState(val); resetPage(); }, [resetPage]);
+  const setTagFilter = useCallback((val: string[]) => { setTagFilterState(val); resetPage(); }, [resetPage]);
+  const onSortChange = useCallback((by: string, dir: string) => {
+    setSortByState(by);
+    setSortDirState(dir);
+    resetPage();
+  }, [resetPage]);
+
+  useEffect(() => {
+    if (user && !isAdmin) {
+      getAllTags().then(setAllTags).catch(() => {});
     }
   }, [user, isAdmin]);
 
-  useEffect(() => {
-    fetchProblems();
-  }, [fetchProblems]);
+  const fetchProblems = useCallback(async (bustCache = false) => {
+    setLoading(true);
+    try {
+      if (user && !isAdmin) {
+        const cacheKey = buildCacheKey(page, difficultyFilter, statusFilter, tagFilter, search, sortBy, sortDir);
 
-  // ---- Update handlers ----
+        if (!bustCache && cache.current.has(cacheKey)) {
+          const cached = cache.current.get(cacheKey)!;
+          setProblems(cached.content);
+          updateFromPage(cached as any);
+          return;
+        }
+
+        const filters = {
+          difficulty: difficultyFilter !== "all" ? difficultyFilter : undefined,
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          tags: tagFilter.length > 0 ? tagFilter : undefined,
+          search: search || undefined,
+          sortBy: sortBy !== "title" || sortDir !== "asc" ? sortBy : undefined,
+          sortDir: sortBy !== "title" || sortDir !== "asc" ? sortDir : undefined,
+        };
+        const data = await problemsService.getProblemsWithProgress(page, PAGE_SIZE, filters);
+        cache.current.set(cacheKey, { content: data.content, page: data.page });
+        setProblems(data.content || []);
+        updateFromPage(data);
+      } else {
+        const data = await problemsService.getAllProblems();
+        setProblems(data || []);
+      }
+    } catch {
+      toast.error("Failed to load problems data.");
+    } finally {
+      hasEverLoaded.current = true;
+      setLoading(false);
+    }
+  }, [user, isAdmin, page, statusFilter, difficultyFilter, tagFilter, search, sortBy, sortDir, PAGE_SIZE, updateFromPage]);
+
+  useEffect(() => { fetchProblems(); }, [fetchProblems]);
+
   const updateProblemStatus = useCallback(
     async (problemId: string, newStatus: ProgressStatus) => {
       if (!user || isAdmin) return;
       try {
-        await progressService.upsertProgress({
-          problemId,
-          status: newStatus,
-        });
+        await progressService.upsertProgress({ problemId, status: newStatus });
         toast.success("Status updated!");
-        await fetchProblems(); // only problems refresh, no separate progress
-      } catch (error) {
+        clearCache();
+        await fetchProblems(true);
+      } catch {
         toast.error("Failed to update status.");
       }
     },
-    [user, isAdmin, fetchProblems],
+    [user, isAdmin, fetchProblems, clearCache],
   );
 
   const updateProblemBestTime = useCallback(
     async (problemId: string, newTime: number) => {
       if (!user || isAdmin) return;
       try {
-        await progressService.upsertProgress({
-          problemId,
-          bestTime: newTime,
-        });
+        await progressService.upsertProgress({ problemId, bestTime: newTime });
         toast.success("Best time updated!");
-        await fetchProblems();
+        clearCache();
+        await fetchProblems(true);
       } catch (error: any) {
         toast.error(error?.message || "Failed to update best time.");
       }
     },
-    [user, isAdmin, fetchProblems],
+    [user, isAdmin, fetchProblems, clearCache],
   );
 
   const scheduleReview = useCallback(
@@ -81,59 +149,59 @@ export function useProblemsPage() {
     [user, isAdmin],
   );
 
-  // ---- Admin CRUD ----
   const addProblem = useCallback(
     async (problemToAdd: Partial<Problem>) => {
       try {
         await problemsService.addProblem(problemToAdd);
-        await fetchProblems();
+        clearCache();
+        await fetchProblems(true);
         toast.success("Problem added successfully!");
       } catch (error: any) {
         toast.error(error?.message || "Failed to add problem.");
         throw error;
       }
     },
-    [fetchProblems],
+    [fetchProblems, clearCache],
   );
 
   const updateProblem = useCallback(
     async (problemId: string, problemToUpdate: Partial<Problem>) => {
       try {
         await problemsService.updateProblem(problemId, problemToUpdate);
-        await fetchProblems();
+        clearCache();
+        await fetchProblems(true);
         toast.success("Problem updated successfully!");
       } catch (error: any) {
         toast.error(error?.message || "Failed to update problem.");
         throw error;
       }
     },
-    [fetchProblems],
+    [fetchProblems, clearCache],
   );
 
   const deleteProblem = useCallback(
     async (problemId: string) => {
       try {
         await problemsService.deleteProblem(problemId);
-        await fetchProblems();
+        clearCache();
+        await fetchProblems(true);
         toast.success("Problem deleted successfully!");
       } catch (error: any) {
         toast.error(error?.message || "Failed to delete problem.");
       }
     },
-    [fetchProblems],
+    [fetchProblems, clearCache],
   );
 
-  // ---- Filtering ----
-  const {
-    filteredProblems,
-    statusFilter,
-    setStatusFilter,
-    difficultyFilter,
-    setDifficultyFilter,
-    tagFilter,
-    setTagFilter,
-    allTags,
-  } = useProblemFilters(problems);
+  const filteredProblems =
+    user && !isAdmin
+      ? problems
+      : problems.filter((p) => {
+          if (difficultyFilter !== "all" && p.difficulty.toLowerCase() !== difficultyFilter) return false;
+          if (tagFilter.length > 0 && !tagFilter.every((t) => p.tags?.includes(t))) return false;
+          if (searchInput && !p.title.toLowerCase().includes(searchInput.toLowerCase())) return false;
+          return true;
+        });
 
   return {
     filteredProblems,
@@ -145,11 +213,22 @@ export function useProblemsPage() {
     setTagFilter,
     allTags,
     loading,
+    searchValue: searchInput,
+    onSearchChange: setSearchInput,
+    sortBy,
+    sortDir,
+    onSortChange,
     updateProblemStatus,
     updateProblemBestTime,
     scheduleReview,
     addProblem,
     updateProblem,
     deleteProblem,
+    isInitialLoading: loading && !hasEverLoaded.current,
+    page,
+    setPage,
+    totalPages,
+    totalElements,
+    PAGE_SIZE,
   };
 }

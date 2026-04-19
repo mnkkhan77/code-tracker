@@ -1,5 +1,5 @@
 // src/api/adminAPI.ts
-import { Attempt, Problem, Purchase, UserProgress } from "@/types/api";
+import { Attempt, PageResponse, Problem, Purchase, UserProgress } from "@/types/api";
 import apiClient from "./apiClient";
 
 export interface AdminUser {
@@ -71,9 +71,9 @@ export interface AdminProblemRequest {
   externalUrls: { platform: string; url: string }[];
 }
 
-export const getAdminProblems = async (): Promise<AdminProblem[]> => {
-  const res = await apiClient.get<AdminProblem[]>("/admin/problems");
-  return Array.isArray(res.data) ? res.data : [];
+export const getAdminProblems = async (page = 0, size = 20): Promise<PageResponse<AdminProblem>> => {
+  const res = await apiClient.get<PageResponse<AdminProblem>>("/admin/problems", { params: { page, size } });
+  return res.data;
 };
 
 export const getAdminProblem = async (id: string): Promise<AdminProblem> => {
@@ -152,9 +152,9 @@ export const getAdminStats = async (): Promise<AdminStats> => {
 };
 
 // ---- Users (AdminController at /api/admin/users) ----
-export const getUsers = async (): Promise<AdminUser[]> => {
-  const res = await apiClient.get<AdminUser[]>("/admin/users");
-  return Array.isArray(res.data) ? res.data : [];
+export const getUsers = async (page = 0, size = 20): Promise<PageResponse<AdminUser>> => {
+  const res = await apiClient.get<PageResponse<AdminUser>>("/admin/users", { params: { page, size } });
+  return res.data;
 };
 
 export const getUser = async (id: string): Promise<User> => {

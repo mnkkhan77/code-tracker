@@ -42,13 +42,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { MoreHorizontal, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function AdminUsersPage() {
-  const { users, loading, error, addUser, updateUser, deleteUser } =
+  const { users, loading, error, addUser, updateUser, deleteUser, page, setPage, totalPages, totalElements, PAGE_SIZE } =
     useAdminUsers();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -236,6 +237,13 @@ export default function AdminUsersPage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </CardContent>
       </Card>
       {isModalOpen && (

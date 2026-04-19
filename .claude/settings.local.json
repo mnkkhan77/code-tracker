@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs -I {} basename {})"
+      "Bash(xargs -I {} basename {})",
+      "Bash(./mvnw compile *)",
+      "Bash(./mvnw package *)",
+      "Bash(./mvnw clean *)",
+      "Bash(xargs grep *)",
+      "Bash(npx tsc *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)"
     ]
   }
 }

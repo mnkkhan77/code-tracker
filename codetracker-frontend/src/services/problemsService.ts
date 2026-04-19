@@ -1,17 +1,25 @@
 // src/services/problemsService.ts
 import * as problemsAPI from "@/api/problemsAPI";
+import { ProblemFilters } from "@/api/problemsAPI";
 import { ProblemModel, mapProblemsDtoToModel } from "@/mappers/problemMapper";
 import { indexProgressByProblemId } from "@/mappers/progressMapper";
-import { Problem, Topic, UserProgress } from "@/types/api";
+import { PageResponse, Problem, Topic, UserProgress } from "@/types/api";
 
 export async function getAllProblems(): Promise<ProblemModel[]> {
   const raw = await problemsAPI.getProblems();
   return mapProblemsDtoToModel(raw);
 }
 
-export async function getProblemsWithProgress(): Promise<ProblemModel[]> {
-  const raw = await problemsAPI.getProblemsWithProgress();
-  return mapProblemsDtoToModel(raw);
+export async function getProblemsWithProgress(
+  page = 0,
+  size = 20,
+  filters: ProblemFilters = {},
+): Promise<PageResponse<ProblemModel>> {
+  const pageData = await problemsAPI.getProblemsWithProgress(page, size, filters);
+  return {
+    ...pageData,
+    content: mapProblemsDtoToModel(pageData.content),
+  };
 }
 
 export async function getTopics(): Promise<Topic[]> {

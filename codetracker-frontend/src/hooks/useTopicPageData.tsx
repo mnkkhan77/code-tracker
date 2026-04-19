@@ -1,195 +1,174 @@
 // src/hooks/useTopicPageData.tsx
-import { ProblemModel, mapProblemsDtoToModel } from "@/mappers/problemMapper";
-import * as problemsService from "@/services/problemsService";
+import * as problemsAPI from "@/api/problemsAPI";
+import apiClient from "@/api/apiClient";
+import { useAuth } from "@/hooks/use-auth";
+import { usePaginationState } from "@/hooks/usePaginationState";
+import { mapProblemsDtoToModel, ProblemModel } from "@/mappers/problemMapper";
 import * as progressService from "@/services/progressService";
-import { ProgressStatus, Topic, UserProgress } from "@/types/api";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { PageResponse, ProgressStatus, Topic } from "@/types/api";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "./use-auth";
-import { useProblemFilters } from "./useProblemFilters";
+
+type CachedPage = Pick<PageResponse<ProblemModel>, "content" | "page">;
+
+function buildCacheKey(
+  page: number, difficulty: string, status: string, tags: string[],
+  search: string, sortBy: string, sortDir: string,
+) {
+  return [page, difficulty, status, [...tags].sort().join(","), search, sortBy, sortDir].join("|");
+}
 
 export function useTopicPageData(slug: string) {
   const { user, isAdmin } = useAuth();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [problems, setProblems] = useState<ProblemModel[]>([]);
-  const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const { page, setPage, totalPages, totalElements, PAGE_SIZE, updateFromPage, resetPage } =
+    usePaginationState(20);
 
-  const fetchData = useCallback(async () => {
-    if (!slug) return;
-    setLoading(true);
-    try {
-      const {
-        topic: currentTopic,
-        problems: problemsData,
-        progressByProblemId,
-      } = await problemsService.getTopicPageData(slug, user?.id);
+  const [statusFilter, setStatusFilterState] = useState<string>("all");
+  const [difficultyFilter, setDifficultyFilterState] = useState<string>("all");
+  const [tagFilter, setTagFilterState] = useState<string[]>([]);
+  const [seenTags, setSeenTags] = useState<Set<string>>(new Set());
 
-      setTopic(currentTopic);
-      // Use the mapper to ensure correct shape and types
-      const mappedProblems = mapProblemsDtoToModel(problemsData || []);
-      setProblems(mappedProblems);
+  // Search: searchInput is immediate (UI), search is debounced (API)
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
-      if (progressByProblemId) {
-        setUserProgress(Object.values(progressByProblemId));
-      } else {
-        setUserProgress([]);
-      }
-    } catch (error) {
-      toast.error("Failed to load topic data.");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug, user?.id]);
+  // Sort
+  const [sortBy, setSortByState] = useState("title");
+  const [sortDir, setSortDirState] = useState("asc");
+
+  const cache = useRef(new Map<string, CachedPage>());
+  const clearCache = useCallback(() => cache.current.clear(), []);
+
+  // Debounce search
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearch(searchInput);
+      resetPage();
+    }, 400);
+    return () => clearTimeout(id);
+  }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setStatusFilter = useCallback((val: string) => { setStatusFilterState(val); resetPage(); }, [resetPage]);
+  const setDifficultyFilter = useCallback((val: string) => { setDifficultyFilterState(val); resetPage(); }, [resetPage]);
+  const setTagFilter = useCallback((val: string[]) => { setTagFilterState(val); resetPage(); }, [resetPage]);
+  const onSortChange = useCallback((by: string, dir: string) => {
+    setSortByState(by);
+    setSortDirState(dir);
+    resetPage();
+  }, [resetPage]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!slug) return;
+    apiClient
+      .get<Topic>(`/topics/slug/${slug}`)
+      .then((res) => setTopic(res.data))
+      .catch(() => setTopic(null));
+  }, [slug]);
 
-  const problemsForTopic = useMemo(() => {
-    if (!topic) return [];
+  const fetchProblems = useCallback(
+    async (bustCache = false) => {
+      if (!slug) return;
+      setLoading(true);
+      try {
+        const cacheKey = buildCacheKey(page, difficultyFilter, statusFilter, tagFilter, search, sortBy, sortDir);
 
-    const progressByProblemId = new Map(
-      userProgress.map((p) => [p.problemId, p]),
-    );
+        if (!bustCache && cache.current.has(cacheKey)) {
+          const cached = cache.current.get(cacheKey)!;
+          setProblems(cached.content);
+          updateFromPage(cached as any);
+          return;
+        }
 
-    // Merge progress info into problems, ensure correct types
-    return problems.map((problem) => {
-      const progress = progressByProblemId.get(problem.id);
-      return {
-        ...problem,
-        status: (progress?.status ?? "not_started") as typeof problem.status,
-        bestTime: progress?.bestTime ?? null,
-      };
-    });
-  }, [topic, problems, userProgress]);
+        const filters = {
+          difficulty: difficultyFilter !== "all" ? difficultyFilter : undefined,
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          tags: tagFilter.length > 0 ? tagFilter : undefined,
+          search: search || undefined,
+          sortBy: sortBy !== "title" || sortDir !== "asc" ? sortBy : undefined,
+          sortDir: sortBy !== "title" || sortDir !== "asc" ? sortDir : undefined,
+        };
 
-  const {
-    filteredProblems,
-    statusFilter,
-    setStatusFilter,
-    difficultyFilter,
-    setDifficultyFilter,
-    tagFilter,
-    setTagFilter,
-    allTags,
-  } = useProblemFilters(problemsForTopic);
+        const rawData =
+          user && !isAdmin
+            ? await problemsAPI.getTopicProblemsWithProgress(slug, page, PAGE_SIZE, filters)
+            : await problemsAPI.getTopicProblems(slug, page, PAGE_SIZE, filters);
 
-  const invalidateProgress = async () => {
-    if (user && !isAdmin) {
-      const progressData = await progressService.getUserProgress();
-      setUserProgress(progressData || []);
-    }
-  };
+        const mapped = mapProblemsDtoToModel(rawData.content);
+        cache.current.set(cacheKey, { content: mapped, page: rawData.page });
+
+        setProblems(mapped);
+        updateFromPage(rawData);
+
+        setSeenTags((prev) => {
+          const updated = new Set(prev);
+          mapped.forEach((p) => p.tags?.forEach((t) => updated.add(t)));
+          return updated;
+        });
+      } catch {
+        toast.error("Failed to load topic data.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [slug, user, isAdmin, page, PAGE_SIZE, statusFilter, difficultyFilter, tagFilter, search, sortBy, sortDir, updateFromPage],
+  );
+
+  useEffect(() => { fetchProblems(); }, [fetchProblems]);
 
   const updateProblemStatus = useCallback(
     async (problemId: string, status: ProgressStatus) => {
       if (!user) return;
-
-      const progressToUpdate = userProgress.find(
-        (p) => p.problemId === problemId,
-      );
       try {
-        let updatedProgress: UserProgress;
-        if (progressToUpdate) {
-          updatedProgress = await progressService.upsertProgress({
-            problemId,
-            status,
-            bestTime: progressToUpdate.bestTime ?? undefined,
-          });
-        } else {
-          updatedProgress = await progressService.upsertProgress({
-            problemId,
-            status,
-          });
-        }
+        await progressService.upsertProgress({ problemId, status });
         toast.success("Status updated!");
-
-        setUserProgress((currentProgress) => {
-          const progressExists = currentProgress.some(
-            (p) => p.id === updatedProgress.id,
-          );
-          if (progressExists) {
-            return currentProgress.map((p) =>
-              p.id === updatedProgress.id ? updatedProgress : p,
-            );
-          } else {
-            return [...currentProgress, updatedProgress];
-          }
-        });
-        setProblems((prev) =>
-          prev.map((p) =>
-            p.id === problemId
-              ? { ...p, status: status as typeof p.status }
-              : p,
-          ),
-        );
+        clearCache();
+        await fetchProblems(true);
       } catch (error: any) {
         toast.error(error?.message || "Failed to update status.");
       }
     },
-    [user, userProgress],
+    [user, fetchProblems, clearCache],
   );
 
   const updateProblemBestTime = useCallback(
     async (problemId: string, bestTime: number) => {
       if (!user) return;
-
-      const progressToUpdate = userProgress.find(
-        (p) => p.problemId === problemId,
-      );
       try {
-        let updatedProgress: UserProgress;
-        if (progressToUpdate) {
-          updatedProgress = await progressService.upsertProgress({
-            problemId,
-            bestTime,
-            status: progressToUpdate.status,
-          });
-        } else {
-          updatedProgress = await progressService.upsertProgress({
-            problemId,
-            bestTime,
-            status: "in_progress",
-          });
-        }
+        await progressService.upsertProgress({ problemId, bestTime });
         toast.success("Best time updated!");
-
-        setUserProgress((currentProgress) => {
-          const progressExists = currentProgress.some(
-            (p) => p.id === updatedProgress.id,
-          );
-          if (progressExists) {
-            return currentProgress.map((p) =>
-              p.id === updatedProgress.id ? updatedProgress : p,
-            );
-          } else {
-            return [...currentProgress, updatedProgress];
-          }
-        });
-        setProblems((prev) =>
-          prev.map((p) =>
-            p.id === problemId ? { ...p, bestTime: bestTime ?? null } : p,
-          ),
-        );
+        clearCache();
+        await fetchProblems(true);
       } catch (error: any) {
         toast.error(error?.message || "Failed to update best time.");
       }
     },
-    [user, userProgress],
+    [user, fetchProblems, clearCache],
   );
 
   return {
     loading,
     topic,
-    problems: filteredProblems,
+    problems,
     statusFilter,
     setStatusFilter,
     difficultyFilter,
     setDifficultyFilter,
     tagFilter,
     setTagFilter,
-    allTags,
+    allTags: Array.from(seenTags).sort(),
+    searchValue: searchInput,
+    onSearchChange: setSearchInput,
+    sortBy,
+    sortDir,
+    onSortChange,
+    page,
+    setPage,
+    totalPages,
+    totalElements,
+    PAGE_SIZE,
     updateProblemStatus,
     updateProblemBestTime,
   };

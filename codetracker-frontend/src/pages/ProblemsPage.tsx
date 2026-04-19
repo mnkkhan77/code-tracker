@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaginationControls } from "@/components/ui/PaginationControls";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { useProblemsPage } from "@/hooks/useProblemsPage";
@@ -31,12 +32,23 @@ export default function ProblemsPage() {
     setTagFilter,
     allTags,
     loading,
+    searchValue,
+    onSearchChange,
+    sortBy,
+    sortDir,
+    onSortChange,
     updateProblemStatus,
     updateProblemBestTime,
     scheduleReview,
     addProblem,
     updateProblem,
     deleteProblem,
+    isInitialLoading,
+    page,
+    setPage,
+    totalPages,
+    totalElements,
+    PAGE_SIZE,
   } = useProblemsPage();
   const { isAuthenticated, isAdmin } = useAuth();
   const showStatusFeature = isAuthenticated && !isAdmin;
@@ -82,7 +94,7 @@ export default function ProblemsPage() {
     }
   };
 
-  if (loading) {
+  if (isInitialLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-32" />
@@ -144,14 +156,27 @@ export default function ProblemsPage() {
               allTags={allTags}
               problemsCount={(filteredProblems || []).length}
               showStatusFilter={showStatusFeature}
+              searchValue={searchValue}
+              onSearchChange={onSearchChange}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              onSortChange={onSortChange}
             />
             <ProblemsDataTable
               problems={filteredProblems || []}
+              loading={loading}
               onStatusChange={updateProblemStatus}
               onBestTimeChange={updateProblemBestTime}
               onScheduleReview={scheduleReview}
               openEditModal={openEditModal}
               setProblemToDelete={setProblemToDelete}
+            />
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
             />
           </CardContent>
         </Card>

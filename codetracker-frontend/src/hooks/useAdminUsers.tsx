@@ -6,6 +6,7 @@ import {
   updateUser,
   AdminUser as User,
 } from "@/api/adminAPI";
+import { usePaginationState } from "@/hooks/usePaginationState";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,12 +14,15 @@ export function useAdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { page, setPage, totalPages, totalElements, PAGE_SIZE, updateFromPage } =
+    usePaginationState(20);
 
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const userList = await getUsers();
-      setUsers(userList);
+      const data = await getUsers(page, PAGE_SIZE);
+      setUsers(data.content);
+      updateFromPage(data);
       setError(null);
     } catch (err) {
       const errorMessage = (err as Error).message || "Failed to fetch users.";
@@ -27,21 +31,18 @@ export function useAdminUsers() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, PAGE_SIZE, updateFromPage]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
   const handleAddUser = async (
-    userData: Omit<
-      User,
-      "id" | "registrationDate" | "_creationTime" | "status" | "problemsSolved"
-    >,
+    userData: Omit<User, "id" | "registrationDate" | "_creationTime" | "status" | "problemsSolved">,
   ) => {
     try {
       const newUser = await addUser(userData);
-      setUsers((prev) => [newUser, ...prev]);
+      await fetchUsers();
       toast.success("User added successfully!");
       return newUser;
     } catch (err: any) {
@@ -56,9 +57,7 @@ export function useAdminUsers() {
     try {
       const updatedUser = await updateUser(userId, updates);
       if (updatedUser) {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === userId ? updatedUser : u)),
-        );
+        setUsers((prev) => prev.map((u) => (u.id === userId ? updatedUser : u)));
         toast.success("User updated successfully!");
       }
       return updatedUser;
@@ -73,7 +72,7 @@ export function useAdminUsers() {
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteUser(userId);
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      await fetchUsers();
       toast.success("User deleted successfully!");
     } catch (err: any) {
       const errorMessage =
@@ -87,6 +86,11 @@ export function useAdminUsers() {
     loading,
     error,
     fetchUsers,
+    page,
+    setPage,
+    totalPages,
+    totalElements,
+    PAGE_SIZE,
     addUser: handleAddUser,
     updateUser: handleUpdateUser,
     deleteUser: handleDeleteUser,

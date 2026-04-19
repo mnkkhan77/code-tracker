@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
-import { useTopicsPageData } from "@/hooks/useTopicsPageData";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -19,7 +18,6 @@ import { Link } from "react-router-dom";
 
 function DashboardContent() {
   const { loading, userStats, upcomingReviews, topics } = useDashboardStats();
-  const { topicsWithStats } = useTopicsPageData();
 
   if (loading) {
     return (
@@ -262,7 +260,7 @@ function DashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {topicsWithStats.slice(0, 6).map((topic) => (
+                {topics.slice(0, 6).map((topic) => (
                   <motion.div key={topic.slug} whileHover={{ scale: 1.03 }}>
                     <Link
                       to={`/topics/${topic.slug}`}

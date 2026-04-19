@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
 import {
@@ -7,12 +8,13 @@ import {
   DollarSign,
   FileCheck,
   Home,
+  LogOut,
   Sparkles,
   Target,
   User,
   Users,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const userNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -40,9 +42,16 @@ interface SidebarProps {
 
 export const Sidebar = ({ onLinkClick }: SidebarProps) => {
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const { isAdmin, user, signOut } = useAuth();
 
   const navigation = isAdmin ? adminNavigation : userNavigation;
+
+  const handleSignOut = async () => {
+    await signOut();
+    onLinkClick?.();
+    navigate("/");
+  };
 
   return (
     <div className="flex flex-col h-full p-6">
@@ -70,6 +79,31 @@ export const Sidebar = ({ onLinkClick }: SidebarProps) => {
           );
         })}
       </nav>
+
+      {/* Bottom: user info + actions */}
+      <div className="border-t border-border pt-4 space-y-3">
+        <div className="flex items-center gap-3 px-1">
+          <Avatar className="h-9 w-9 shrink-0">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+              {user?.initials || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{user?.name || "User"}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
+          </div>
+        </div>
+
+        <motion.div whileHover={{ x: 4 }}>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Sign out</span>
+          </button>
+        </motion.div>
+      </div>
     </div>
   );
 };

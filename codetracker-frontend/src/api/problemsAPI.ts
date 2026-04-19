@@ -1,6 +1,7 @@
 // src/api/problemsAPI.ts
 import {
   CreateProgressDto,
+  PageResponse,
   Problem,
   ProgressStatus,
   Topic,
@@ -79,9 +80,79 @@ export const getProblems = async (): Promise<Problem[]> => {
   }
 };
 
-export const getProblemsWithProgress = async (): Promise<Problem[]> => {
+export interface ProblemFilters {
+  difficulty?: string;
+  tags?: string[];
+  status?: string;
+  search?: string;
+  sortBy?: string;
+  sortDir?: string;
+}
+
+export const getProblemsWithProgress = async (
+  page = 0,
+  size = 20,
+  filters: ProblemFilters = {},
+): Promise<PageResponse<Problem>> => {
   try {
-    const res = await apiClient.get<Problem[]>("/problems/with-progress");
+    const params: Record<string, unknown> = { page, size };
+    if (filters.difficulty) params.difficulty = filters.difficulty;
+    if (filters.status) params.status = filters.status;
+    if (filters.tags && filters.tags.length > 0) params.tags = filters.tags;
+    if (filters.search) params.search = filters.search;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortDir) params.sortDir = filters.sortDir;
+    const res = await apiClient.get<PageResponse<Problem>>("/problems/with-progress", { params });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllTags = async (): Promise<string[]> => {
+  try {
+    const res = await apiClient.get<string[]>("/problems/tags");
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTopicProblems = async (
+  slug: string,
+  page = 0,
+  size = 20,
+  filters: ProblemFilters = {},
+): Promise<PageResponse<Problem>> => {
+  try {
+    const params: Record<string, unknown> = { page, size };
+    if (filters.difficulty) params.difficulty = filters.difficulty;
+    if (filters.tags && filters.tags.length > 0) params.tags = filters.tags;
+    if (filters.search) params.search = filters.search;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortDir) params.sortDir = filters.sortDir;
+    const res = await apiClient.get<PageResponse<Problem>>(`/topics/slug/${slug}/problems`, { params });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getTopicProblemsWithProgress = async (
+  slug: string,
+  page = 0,
+  size = 20,
+  filters: ProblemFilters = {},
+): Promise<PageResponse<Problem>> => {
+  try {
+    const params: Record<string, unknown> = { page, size };
+    if (filters.difficulty) params.difficulty = filters.difficulty;
+    if (filters.status) params.status = filters.status;
+    if (filters.tags && filters.tags.length > 0) params.tags = filters.tags;
+    if (filters.search) params.search = filters.search;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortDir) params.sortDir = filters.sortDir;
+    const res = await apiClient.get<PageResponse<Problem>>(`/topics/slug/${slug}/problems/with-progress`, { params });
     return res.data;
   } catch (error) {
     throw error;

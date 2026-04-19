@@ -6,6 +6,8 @@ import {
   deleteAdminProblem,
   getAdminProblems,
 } from "@/api/adminAPI";
+import { PaginationControls } from "@/components/ui/PaginationControls";
+import { usePaginationState } from "@/hooks/usePaginationState";
 import { getTopics } from "@/api/problemsAPI";
 import {
   AlertDialog,
@@ -38,7 +40,7 @@ import {
 } from "@/components/ui/table";
 import { Topic } from "@/types/api";
 import { MoreHorizontal, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -60,28 +62,38 @@ export default function AdminProblemsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const { page, setPage, totalPages, totalElements, PAGE_SIZE, updateFromPage } =
+    usePaginationState(20);
+
+  const fetchProblems = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [result, t] = await Promise.all([getAdminProblems(page, PAGE_SIZE), getTopics()]);
+      setProblems(result.content);
+      updateFromPage(result);
+      setTopics(t);
+    } catch {
+      toast.error("Failed to load problems.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, PAGE_SIZE, updateFromPage]);
 
   useEffect(() => {
-    Promise.all([getAdminProblems(), getTopics()])
-      .then(([p, t]) => {
-        setProblems(p);
-        setTopics(t);
-      })
-      .catch(() => toast.error("Failed to load problems."))
-      .finally(() => setLoading(false));
-  }, []);
+    fetchProblems();
+  }, [fetchProblems]);
 
   const handleCreate = async (data: AdminProblemRequest) => {
-    const created = await createAdminProblem(data);
-    setProblems((prev) => [created, ...prev]);
+    await createAdminProblem(data);
     setModalOpen(false);
     toast.success("Problem created.");
+    await fetchProblems();
   };
 
   const handleDelete = async (id: string) => {
     await deleteAdminProblem(id);
-    setProblems((prev) => prev.filter((p) => p.id !== id));
     toast.success("Problem deleted.");
+    await fetchProblems();
   };
 
   if (loading) {
@@ -195,6 +207,13 @@ export default function AdminProblemsPage() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </CardContent>
       </Card>
 
