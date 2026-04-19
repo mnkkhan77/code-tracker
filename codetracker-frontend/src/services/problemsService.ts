@@ -63,9 +63,8 @@ export async function getTopicPageData(
 
   let progressByProblemId: Record<string, UserProgress> | null = null;
   if (userId) {
-    const progressList = await (
-      await import("@/api/progressAPI")
-    ).getUserProgress();
+    const { getUserProgress } = await import("@/api/progressAPI");
+    const progressList = await getUserProgress();
     progressByProblemId = indexProgressByProblemId(progressList);
   }
 

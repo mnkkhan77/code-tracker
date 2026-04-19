@@ -264,7 +264,7 @@ export const updateUserProblemStatus = async (
       return res.data;
     } else {
       // No progress, create it
-      const newProgress: CreateProgressDto = { userId, problemId, status };
+      const newProgress: CreateProgressDto = { problemId, status };
       return createProgress(newProgress);
     }
   } catch (error) {
@@ -294,7 +294,6 @@ export const updateUserProblemBestTime = async (
     } else {
       // No progress, create it
       const newProgress: CreateProgressDto = {
-        userId,
         problemId,
         bestTime,
         status: "in_progress",

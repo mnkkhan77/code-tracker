@@ -25,7 +25,7 @@ export function UserNav() {
         <Button variant="ghost" className="flex items-center gap-x-2">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-              {user?.initials || "U"}
+              {user?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="hidden sm:flex sm:flex-col sm:items-start">

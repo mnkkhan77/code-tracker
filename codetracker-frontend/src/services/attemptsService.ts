@@ -8,5 +8,5 @@ export const getUserAttempts = (userId: string): Promise<Attempt[]> =>
 export const getProblemAttempts = (problemId: string): Promise<Attempt[]> =>
   attemptsAPI.getProblemAttempts(problemId);
 
-export const createAttempt = (attempt: Partial<Attempt>): Promise<Attempt> =>
+export const createAttempt = (attempt: Partial<Attempt>): Promise<Attempt | null> =>
   attemptsAPI.createAttempt(attempt);

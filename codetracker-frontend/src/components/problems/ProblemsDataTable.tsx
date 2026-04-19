@@ -24,7 +24,7 @@ import { BestTimeEditor } from "./BestTimeEditor";
 
 type Problem = BaseProblem & {
   status: "not_started" | "in_progress" | "completed";
-  bestTime: number | null;
+  bestTime?: number | null;
 };
 
 interface ProblemsDataTableProps {
@@ -179,7 +179,7 @@ export function ProblemsDataTable({
                   <TableCell>
                     <BestTimeEditor
                       // key={`${problem.id}-${problem.bestTime}`}
-                      timeInSeconds={problem.bestTime}
+                      timeInSeconds={problem.bestTime ?? null}
                       onSave={(newTime) =>
                         onBestTimeChange(problem.id, newTime)
                       }

@@ -42,7 +42,7 @@ export function AuthCard({ onAuthSuccess }: AuthCardProps) {
     try {
       const formData = new FormData(event.currentTarget);
       // await signIn("email-otp", formData);
-      await signIn();
+      await signIn(formData.get("email") as string, "");
       setStep({ email: formData.get("email") as string });
       setIsLoading(false);
     } catch (error) {
@@ -60,9 +60,8 @@ export function AuthCard({ onAuthSuccess }: AuthCardProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const formData = new FormData(event.currentTarget);
       // await signIn("email-otp", formData);
-      await signIn();
+      await signIn(typeof step === "object" ? step.email : "", otp);
 
       if (onAuthSuccess) {
         onAuthSuccess();

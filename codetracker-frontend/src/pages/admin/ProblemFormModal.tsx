@@ -35,7 +35,7 @@ interface UrlRow {
 
 export default function ProblemFormModal({ topics, problem, onSave, onClose }: Props) {
   const [title, setTitle] = useState(problem?.title ?? "");
-  const [difficulty, setDifficulty] = useState(problem?.difficulty ?? "easy");
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(problem?.difficulty ?? "easy");
   const [topicId, setTopicId] = useState(problem?.topicId ?? "");
   const [slug, setSlug] = useState(problem?.slug ?? "");
   const [tagInput, setTagInput] = useState("");
@@ -116,7 +116,7 @@ export default function ProblemFormModal({ topics, problem, onSave, onClose }: P
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Difficulty</Label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
+              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as "easy" | "medium" | "hard")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

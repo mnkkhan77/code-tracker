@@ -5,15 +5,15 @@ import { Suspense, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
 function SignIn() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!loading && isAuthenticated) {
       navigate(searchParams.get("redirect") || "/");
     }
-  }, [isLoading, isAuthenticated, searchParams, navigate]);
+  }, [loading, isAuthenticated, searchParams, navigate]);
 
   return (
     <div className="flex h-screen items-center justify-center">

@@ -1,5 +1,5 @@
 // src/pages/ProblemsPage.tsx
-import { Problem } from "@/api/adminAPI";
+import { Problem } from "@/types/api";
 import { ProblemFormModal } from "@/components/problems/ProblemFormModal";
 import { ProblemsDataTable } from "@/components/problems/ProblemsDataTable";
 import { ProblemsToolbar } from "@/components/problems/ProblemsToolbar";

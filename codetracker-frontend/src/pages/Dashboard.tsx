@@ -35,13 +35,6 @@ function DashboardContent() {
     );
   }
 
-  const totalProblems = userStats.totalProblems;
-  const completed = userStats.completed;
-  const inProgress = userStats.inProgress;
-  const notStarted = totalProblems - completed - inProgress;
-  const progressPercentage =
-    totalProblems > 0 ? Math.round((completed / totalProblems) * 100) : 0;
-  const totalTimeSpent = userStats.totalTimeSpent;
 
   const statsCards = [
     {
@@ -217,7 +210,7 @@ function DashboardContent() {
                               {review.problem?.title}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {review.topic?.name}
+                              {review.problem?.topicSlug}
                             </p>
                           </div>
                         </div>

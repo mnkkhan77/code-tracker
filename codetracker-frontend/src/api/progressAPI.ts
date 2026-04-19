@@ -41,3 +41,8 @@ export const addAttempt = async (dto: AddAttemptDto) => {
 export const deleteProgress = async (problemId: string): Promise<void> => {
   await apiClient.delete(`/progress/problem/${problemId}`);
 };
+
+export const getUserProgress = async (): Promise<UserProgress[]> => {
+  const res = await apiClient.get<UserProgress[]>("/progress/me");
+  return res.data;
+};

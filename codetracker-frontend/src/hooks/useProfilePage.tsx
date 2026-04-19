@@ -1,6 +1,8 @@
 // src/hooks/useProfilePage.tsx
 import { getUserProfile, updateUserProfile } from "@/api/userAPI";
 import { User } from "@/types/api";
+
+export type UserProfile = User;
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./use-auth";
