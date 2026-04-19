@@ -10,9 +10,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 public interface ProblemService {
     List<ProblemDto> getAllProblems();
-    Page<ProblemDto> getAllProblems(Pageable pageable);
+    Page<ProblemDto> getAllProblems(Pageable pageable, String difficulty, List<String> tags);
     ProblemDto getProblemById(UUID id);
     List<ProblemDto> getProblemsByTopicId(UUID topicId);
     Problem createProblem(Problem problem);
@@ -21,6 +22,12 @@ public interface ProblemService {
     void deleteProblem(UUID problemId);
 
     List<ProblemWithProgressDto> getProblemsWithUserProgress(UUID userId);
+    Page<ProblemWithProgressDto> getProblemsWithUserProgress(UUID userId, Pageable pageable, String search, String difficulty, List<String> tags, String status, String sortBy, String sortDir);
+
+    Page<ProblemDto> getTopicProblems(UUID topicId, Pageable pageable, String search, String difficulty, List<String> tags, String sortBy, String sortDir);
+    Page<ProblemWithProgressDto> getTopicProblemsWithUserProgress(UUID topicId, UUID userId, Pageable pageable, String search, String difficulty, List<String> tags, String status, String sortBy, String sortDir);
+
+    List<String> getAllTagNames();
     Optional<Problem> getProblemEntityById(UUID id);
 }
 

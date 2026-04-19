@@ -14,9 +14,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.codetracker.codetracker_backend.specification.ProblemSpecification;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +45,14 @@ public class AdminProblemsController {
     @Operation(summary = "Get all problems (admin)")
     @ApiResponse(responseCode = "200", description = "List of all problems")
     @GetMapping
-    public List<AdminProblemResponseDto> getAllProblems() {
-        return problemRepository.findAll().stream()
-                .map(AdminProblemResponseDto::fromEntity)
-                .toList();
+    public ResponseEntity<Page<AdminProblemResponseDto>> getAllProblems(
+            @PageableDefault(size = 20, sort = "title") Pageable pageable,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) List<String> tags) {
+        Specification<Problem> spec = ProblemSpecification.withFilters(difficulty, tags);
+        Page<AdminProblemResponseDto> result = problemRepository.findAll(spec, pageable)
+                .map(AdminProblemResponseDto::fromEntity);
+        return ResponseEntity.ok(result);
     }
 
     @Operation(summary = "Get a problem by ID (admin)")

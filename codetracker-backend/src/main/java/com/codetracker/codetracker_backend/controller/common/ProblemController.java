@@ -43,17 +43,26 @@ public class ProblemController {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    @Operation(summary = "Get all problems (paginated when page param present)")
+    @Operation(summary = "Get all problems (paginated, filterable by difficulty and tags)")
     @ApiResponse(responseCode = "200", description = "List of all problems")
     @GetMapping
     public ResponseEntity<?> getAllProblems(
             @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) List<String> tags,
             @PageableDefault(size = 20, sort = "title") Pageable pageable) {
         if (page != null) {
-            Page<ProblemDto> result = problemService.getAllProblems(pageable);
+            Page<ProblemDto> result = problemService.getAllProblems(pageable, difficulty, tags);
             return ResponseEntity.ok(result);
         }
         return ResponseEntity.ok(problemService.getAllProblems());
+    }
+
+    @Operation(summary = "Get all unique tag names")
+    @ApiResponse(responseCode = "200", description = "List of tag names")
+    @GetMapping("/tags")
+    public ResponseEntity<List<String>> getAllTags() {
+        return ResponseEntity.ok(problemService.getAllTagNames());
     }
 
     @Operation(summary = "Get all problems with current user's progress")
@@ -62,12 +71,20 @@ public class ProblemController {
         @ApiResponse(responseCode = "401", description = "Not authenticated")
     })
     @GetMapping("/with-progress")
-    public ResponseEntity<List<ProblemWithProgressDto>> getProblemsWithProgress(
-            Authentication authentication) {
+    public ResponseEntity<Page<ProblemWithProgressDto>> getProblemsWithProgress(
+            Authentication authentication,
+            @PageableDefault(size = 20, sort = "title") Pageable pageable,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) List<String> tags,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDir) {
         String email = authentication.getName();
         User user = userService.getUserByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        List<ProblemWithProgressDto> result = problemService.getProblemsWithUserProgress(user.getId());
+        Page<ProblemWithProgressDto> result = problemService.getProblemsWithUserProgress(
+                user.getId(), pageable, search, difficulty, tags, status, sortBy, sortDir);
         return ResponseEntity.ok(result);
     }
 

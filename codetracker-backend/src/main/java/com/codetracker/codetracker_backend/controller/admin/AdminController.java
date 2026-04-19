@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Tag(name = "Admin - Users", description = "User management (admin only)")
 @RestController
@@ -31,29 +30,12 @@ public class AdminController {
     private final AttemptService attemptService;
     private final UserProgressService userProgressService;
 
-    @Operation(summary = "Get all users (paginated when page param present)")
-    @ApiResponse(responseCode = "200", description = "List of all users")
+    @Operation(summary = "Get all users (paginated)")
+    @ApiResponse(responseCode = "200", description = "Page of users")
     @GetMapping
-    public ResponseEntity<?> getAllUsers(
-            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer page,
+    public ResponseEntity<Page<AdminUserDto>> getAllUsers(
             @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        if (page != null) {
-            Page<AdminUserDto> result = userService.getAllUsers(pageable)
-                    .map(u -> new AdminUserDto(
-                            u.getId().toString(),
-                            u.getName(),
-                            u.getEmail(),
-                            u.getRole() != null ? u.getRole().name() : "USER",
-                            u.getBio(),
-                            u.getCreatedDate() != null ? u.getCreatedDate().toString() : null,
-                            (int) u.getProgressList().stream()
-                                    .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
-                                    .count(),
-                            "active"
-                    ));
-            return ResponseEntity.ok(result);
-        }
-        List<AdminUserDto> all = userService.getAllUsers().stream()
+        Page<AdminUserDto> result = userService.getAllUsers(pageable)
                 .map(u -> new AdminUserDto(
                         u.getId().toString(),
                         u.getName(),
@@ -65,9 +47,8 @@ public class AdminController {
                                 .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
                                 .count(),
                         "active"
-                ))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(all);
+                ));
+        return ResponseEntity.ok(result);
     }
 
     @Operation(summary = "Get a user by ID")
