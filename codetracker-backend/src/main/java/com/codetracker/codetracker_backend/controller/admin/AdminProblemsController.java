@@ -50,7 +50,7 @@ public class AdminProblemsController {
             @RequestParam(required = false) String difficulty,
             @RequestParam(required = false) List<String> tags) {
         Specification<Problem> spec = ProblemSpecification.withFilters(difficulty, tags);
-        Page<AdminProblemResponseDto> result = problemRepository.findAll(spec, pageable)
+        Page<AdminProblemResponseDto> result = problemRepository.findAll(spec, Objects.requireNonNull(pageable))
                 .map(AdminProblemResponseDto::fromEntity);
         return ResponseEntity.ok(result);
     }
