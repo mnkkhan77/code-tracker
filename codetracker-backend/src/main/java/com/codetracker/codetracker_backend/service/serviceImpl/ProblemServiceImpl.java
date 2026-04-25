@@ -7,11 +7,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.codetracker.codetracker_backend.config.RedisConfig;
 import com.codetracker.codetracker_backend.dto.ExternalUrlDto;
 import com.codetracker.codetracker_backend.dto.ProblemDto;
 import com.codetracker.codetracker_backend.dto.ProblemWithProgressDto;
@@ -36,11 +40,16 @@ public class ProblemServiceImpl implements ProblemService {
     private final UserProgressRepository userProgressRepository;
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = RedisConfig.CACHE_PROBLEMS, allEntries = true),
+        @CacheEvict(value = RedisConfig.CACHE_TAGS,     allEntries = true)
+    })
     public Problem createProblem(@NonNull Problem problem) {
         return problemRepository.save(problem);
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_PROBLEMS, key = "'all'")
     public List<ProblemDto> getAllProblems() {
         return problemRepository.findAll().stream()
                 .map(ProblemDto::toDto)
@@ -54,11 +63,13 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_TAGS, key = "'all'")
     public List<String> getAllTagNames() {
         return problemRepository.findAllTagNames();
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_PROBLEMS, key = "#id")
     public ProblemDto getProblemById(@NonNull UUID id) {
         return problemRepository.findById(id)
                 .map(ProblemDto::toDto)
@@ -66,6 +77,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_PROBLEMS, key = "'topic-' + #topicId")
     public List<ProblemDto> getProblemsByTopicId(UUID topicId) {
         return problemRepository.findByTopicId(topicId).stream()
                 .map(ProblemDto::toDto)
@@ -78,6 +90,10 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = RedisConfig.CACHE_PROBLEMS, allEntries = true),
+        @CacheEvict(value = RedisConfig.CACHE_TAGS,     allEntries = true)
+    })
     public Problem updateProblem(@NonNull UUID problemId, Problem updatedProblem) {
         return problemRepository.findById(problemId)
                 .map(existing -> {
@@ -91,16 +107,18 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = RedisConfig.CACHE_PROBLEMS, allEntries = true),
+        @CacheEvict(value = RedisConfig.CACHE_TAGS,     allEntries = true)
+    })
     public void deleteProblem(@NonNull UUID problemId) {
         problemRepository.deleteById(problemId);
     }
 
     @Override
     public List<ProblemWithProgressDto> getProblemsWithUserProgress(UUID userId) {
-        // 1. Fetch all problems
         List<Problem> problems = problemRepository.findAll();
 
-        // 2. Fetch user's progress records
         Map<UUID, UserProgress> progressMap = userProgressRepository.findByUserId(userId)
                 .stream()
                 .collect(Collectors.toMap(
@@ -108,7 +126,6 @@ public class ProblemServiceImpl implements ProblemService {
                         up -> up
                 ));
 
-        // 3. Merge problems + progress
         return problems.stream()
                 .map(problem -> {
                     UserProgress progress = progressMap.get(problem.getId());
@@ -133,7 +150,6 @@ public class ProblemServiceImpl implements ProblemService {
                 })
                 .toList();
     }
-
 
     @Override
     public Page<ProblemWithProgressDto> getProblemsWithUserProgress(

@@ -2,6 +2,7 @@ package com.codetracker.codetracker_backend.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 public class HealthCheckScheduler {
 
     private final DataSource dataSource;
+    private final RedisConnectionFactory redisConnectionFactory;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -25,6 +27,7 @@ public class HealthCheckScheduler {
     public void runHealthCheck() {
         log.info("=== Health Check @ {} ===", LocalDateTime.now().format(FORMATTER));
         checkDatabase();
+        checkRedis();
         checkJvmMemory();
         checkDiskSpace();
         log.info("=== Health Check Complete ===");
@@ -39,6 +42,19 @@ public class HealthCheckScheduler {
             }
         } catch (Exception e) {
             log.error("[DB] Status: DOWN — {}", e.getMessage());
+        }
+    }
+
+    private void checkRedis() {
+        try (var conn = redisConnectionFactory.getConnection()) {
+            String pong = conn.ping();
+            if ("PONG".equalsIgnoreCase(pong)) {
+                log.info("[Redis] Status: UP");
+            } else {
+                log.warn("[Redis] Status: DEGRADED — unexpected ping response: {}", pong);
+            }
+        } catch (Exception e) {
+            log.error("[Redis] Status: DOWN — {}", e.getMessage());
         }
     }
 

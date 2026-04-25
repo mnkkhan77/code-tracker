@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import com.codetracker.codetracker_backend.config.RedisConfig;
 import com.codetracker.codetracker_backend.dto.TopicDto;
 import com.codetracker.codetracker_backend.dto.TopicWithProgressDto;
 import com.codetracker.codetracker_backend.entity.Topic;
@@ -27,11 +30,13 @@ public class TopicServiceImpl implements TopicService {
     private final UserProgressRepository userProgressRepository;
 
     @Override
+    @CacheEvict(value = RedisConfig.CACHE_TOPICS, allEntries = true)
     public Topic createTopic(@NonNull Topic topic) {
         return topicRepository.save(topic);
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_TOPICS, key = "'all'")
     public List<TopicDto> getAllTopics() {
         return topicRepository.findAll().stream()
                 .map(TopicDto::toDto)
@@ -39,6 +44,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_TOPICS, key = "#id")
     public TopicDto getTopicById(@NonNull UUID id) {
         return topicRepository.findById(id)
                 .map(TopicDto::toDto)
@@ -46,6 +52,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_TOPICS, key = "'slug-' + #slug")
     public TopicDto getTopicBySlug(String slug) {
         Topic topic = topicRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
@@ -54,6 +61,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    @CacheEvict(value = RedisConfig.CACHE_TOPICS, allEntries = true)
     public Topic updateTopic(@NonNull UUID topicId, Topic updatedTopic) {
         return topicRepository.findById(topicId)
                 .map(existing -> {
@@ -66,6 +74,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    @CacheEvict(value = RedisConfig.CACHE_TOPICS, allEntries = true)
     public void deleteTopic(@NonNull UUID topicId) {
         topicRepository.deleteById(topicId);
     }
@@ -80,6 +89,7 @@ public class TopicServiceImpl implements TopicService {
         return TopicWithProgressDto.toDto(topic, userProgressList);
     }
 
+    @Override
     public List<TopicWithProgressDto> getTopicsWithProgress(UUID userId) {
         List<Topic> topics = topicRepository.findAll();
 
