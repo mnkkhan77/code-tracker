@@ -80,6 +80,25 @@ export const getProblems = async (): Promise<Problem[]> => {
   }
 };
 
+export const getPaginatedProblems = async (
+  page = 0,
+  size = 20,
+  filters: Omit<ProblemFilters, "status"> = {},
+): Promise<PageResponse<Problem>> => {
+  try {
+    const params: Record<string, unknown> = { page, size };
+    if (filters.difficulty) params.difficulty = filters.difficulty;
+    if (filters.tags && filters.tags.length > 0) params.tags = filters.tags;
+    if (filters.search) params.search = filters.search;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortDir) params.sortDir = filters.sortDir;
+    const res = await apiClient.get<PageResponse<Problem>>("/problems", { params });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export interface ProblemFilters {
   difficulty?: string;
   tags?: string[];

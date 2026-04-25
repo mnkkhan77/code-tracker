@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface ProblemService {
     List<ProblemDto> getAllProblems();
-    Page<ProblemDto> getAllProblems(Pageable pageable, String difficulty, List<String> tags);
+    Page<ProblemDto> getAllProblems(Pageable pageable, String difficulty, List<String> tags, String search, String sortBy, String sortDir);
     ProblemDto getProblemById(UUID id);
     List<ProblemDto> getProblemsByTopicId(UUID topicId);
     Problem createProblem(Problem problem);

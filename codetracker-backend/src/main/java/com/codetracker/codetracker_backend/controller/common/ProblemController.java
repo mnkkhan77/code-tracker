@@ -50,9 +50,12 @@ public class ProblemController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String difficulty,
             @RequestParam(required = false) List<String> tags,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDir,
             @PageableDefault(size = 20, sort = "title") Pageable pageable) {
         if (page != null) {
-            Page<ProblemDto> result = problemService.getAllProblems(pageable, difficulty, tags);
+            Page<ProblemDto> result = problemService.getAllProblems(pageable, difficulty, tags, search, sortBy, sortDir);
             return ResponseEntity.ok(result);
         }
         return ResponseEntity.ok(problemService.getAllProblems());

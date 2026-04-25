@@ -10,6 +10,18 @@ export async function getAllProblems(): Promise<ProblemModel[]> {
   return mapProblemsDtoToModel(raw);
 }
 
+export async function getPaginatedProblems(
+  page = 0,
+  size = 20,
+  filters: Omit<ProblemFilters, "status"> = {},
+): Promise<PageResponse<ProblemModel>> {
+  const pageData = await problemsAPI.getPaginatedProblems(page, size, filters);
+  return {
+    ...pageData,
+    content: mapProblemsDtoToModel(pageData.content),
+  };
+}
+
 export async function getProblemsWithProgress(
   page = 0,
   size = 20,

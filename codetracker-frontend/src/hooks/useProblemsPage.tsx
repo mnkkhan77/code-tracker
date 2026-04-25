@@ -20,7 +20,7 @@ function buildCacheKey(
 }
 
 export function useProblemsPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [problems, setProblems] = useState<ProblemModel[]>([]);
   const [loading, setLoading] = useState(true);
   const { page, setPage, totalPages, totalElements, PAGE_SIZE, updateFromPage, resetPage } =
@@ -62,12 +62,13 @@ export function useProblemsPage() {
   }, [resetPage]);
 
   useEffect(() => {
-    if (user && !isAdmin) {
+    if (user) {
       getAllTags().then(setAllTags).catch(() => {});
     }
-  }, [user, isAdmin]);
+  }, [user]);
 
   const fetchProblems = useCallback(async (bustCache = false) => {
+    if (authLoading) return;
     setLoading(true);
     try {
       if (user && !isAdmin) {
@@ -93,8 +94,16 @@ export function useProblemsPage() {
         setProblems(data.content || []);
         updateFromPage(data);
       } else {
-        const data = await problemsService.getAllProblems();
-        setProblems(data || []);
+        const filters = {
+          difficulty: difficultyFilter !== "all" ? difficultyFilter : undefined,
+          tags: tagFilter.length > 0 ? tagFilter : undefined,
+          search: search || undefined,
+          sortBy: sortBy !== "title" || sortDir !== "asc" ? sortBy : undefined,
+          sortDir: sortBy !== "title" || sortDir !== "asc" ? sortDir : undefined,
+        };
+        const data = await problemsService.getPaginatedProblems(page, PAGE_SIZE, filters);
+        setProblems(data.content || []);
+        updateFromPage(data);
       }
     } catch {
       toast.error("Failed to load problems data.");
@@ -102,7 +111,7 @@ export function useProblemsPage() {
       hasEverLoaded.current = true;
       setLoading(false);
     }
-  }, [user, isAdmin, page, statusFilter, difficultyFilter, tagFilter, search, sortBy, sortDir, PAGE_SIZE, updateFromPage]);
+  }, [authLoading, user, isAdmin, page, statusFilter, difficultyFilter, tagFilter, search, sortBy, sortDir, PAGE_SIZE, updateFromPage]);
 
   useEffect(() => { fetchProblems(); }, [fetchProblems]);
 
@@ -193,15 +202,7 @@ export function useProblemsPage() {
     [fetchProblems, clearCache],
   );
 
-  const filteredProblems =
-    user && !isAdmin
-      ? problems
-      : problems.filter((p) => {
-          if (difficultyFilter !== "all" && p.difficulty.toLowerCase() !== difficultyFilter) return false;
-          if (tagFilter.length > 0 && !tagFilter.every((t) => p.tags?.includes(t))) return false;
-          if (searchInput && !p.title.toLowerCase().includes(searchInput.toLowerCase())) return false;
-          return true;
-        });
+  const filteredProblems = problems;
 
   return {
     filteredProblems,

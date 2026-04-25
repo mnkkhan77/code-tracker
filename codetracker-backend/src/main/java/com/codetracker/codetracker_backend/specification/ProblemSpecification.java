@@ -14,9 +14,9 @@ import java.util.UUID;
 
 public class ProblemSpecification {
 
-    /** For admin use — no search/sort needed. */
-    public static Specification<Problem> withFilters(String difficulty, List<String> tags) {
-        return withUserFilters(null, difficulty, tags, null, null, null, null, null);
+    public static Specification<Problem> withFilters(
+            String difficulty, List<String> tags, String search, String sortBy, String sortDir) {
+        return withUserFilters(null, difficulty, tags, search, null, null, sortBy, sortDir);
     }
 
     public static Specification<Problem> withTopicFilters(

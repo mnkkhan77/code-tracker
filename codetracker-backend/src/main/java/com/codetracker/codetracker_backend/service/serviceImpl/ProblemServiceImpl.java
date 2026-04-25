@@ -57,9 +57,9 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Page<ProblemDto> getAllProblems(Pageable pageable, String difficulty, List<String> tags) {
-        Specification<Problem> spec = ProblemSpecification.withFilters(difficulty, tags);
-        return problemRepository.findAll(spec, Objects.requireNonNull(pageable)).map(ProblemDto::toDto);
+    public Page<ProblemDto> getAllProblems(Pageable pageable, String difficulty, List<String> tags, String search, String sortBy, String sortDir) {
+        Specification<Problem> spec = ProblemSpecification.withFilters(difficulty, tags, search, sortBy, sortDir);
+        return problemRepository.findAll(spec, Objects.requireNonNull(ProblemSpecification.effectivePageable(pageable, sortBy))).map(ProblemDto::toDto);
     }
 
     @Override
