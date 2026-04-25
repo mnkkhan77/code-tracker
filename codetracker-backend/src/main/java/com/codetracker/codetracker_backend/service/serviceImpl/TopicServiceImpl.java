@@ -1,6 +1,7 @@
 package com.codetracker.codetracker_backend.service.serviceImpl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -84,19 +85,24 @@ public class TopicServiceImpl implements TopicService {
         Topic topic = topicRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
 
-        List<UserProgress> userProgressList = userProgressRepository.findByUserId(userId);
+        Map<UUID, UserProgress> progressMap = userProgressRepository.findByUserId(userId)
+                .stream()
+                .collect(Collectors.toMap(p -> p.getProblem().getId(), p -> p));
 
-        return TopicWithProgressDto.toDto(topic, userProgressList);
+        return TopicWithProgressDto.toDto(topic, progressMap);
     }
 
     @Override
+    @Cacheable(value = RedisConfig.CACHE_TOPICS_PROGRESS, key = "#userId")
     public List<TopicWithProgressDto> getTopicsWithProgress(UUID userId) {
-        List<Topic> topics = topicRepository.findAll();
+        List<Topic> topics = topicRepository.findAllWithProblems();
 
-        List<UserProgress> userProgressList = userProgressRepository.findByUserId(userId);
+        Map<UUID, UserProgress> progressMap = userProgressRepository.findByUserId(userId)
+                .stream()
+                .collect(Collectors.toMap(p -> p.getProblem().getId(), p -> p));
 
         return topics.stream()
-                .map(topic -> TopicWithProgressDto.toDto(topic, userProgressList))
+                .map(topic -> TopicWithProgressDto.toDto(topic, progressMap))
                 .toList();
     }
 }

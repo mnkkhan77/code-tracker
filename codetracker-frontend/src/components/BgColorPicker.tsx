@@ -9,68 +9,68 @@ import { useTheme } from "@/components/ThemeProvider";
 import { Palette } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// Three layers per palette: background (darkest tint) → sidebar → card/navbar (lightest)
+// Three layers per palette: background (subtle tint) → sidebar → card (near-white)
 const BG_COLORS = [
   {
     name: "Forest",
-    value: "140 25% 82%",
-    card: "140 15% 96%",
-    sidebar: "140 20% 89%",
-    preview: "140 45% 55%",
+    value: "140 10% 94%",
+    card: "0 0% 99%",
+    sidebar: "140 13% 91%",
+    preview: "140 45% 50%",
   },
   {
     name: "Rose",
-    value: "345 40% 80%",
-    card: "345 20% 96%",
-    sidebar: "345 28% 87%",
-    preview: "345 55% 65%",
+    value: "345 12% 94%",
+    card: "0 0% 99%",
+    sidebar: "345 16% 91%",
+    preview: "345 55% 60%",
   },
   {
     name: "Ocean",
-    value: "205 45% 78%",
-    card: "205 22% 95%",
-    sidebar: "205 32% 85%",
-    preview: "205 60% 55%",
+    value: "205 14% 93%",
+    card: "0 0% 99%",
+    sidebar: "205 19% 90%",
+    preview: "205 60% 50%",
   },
   {
     name: "Peach",
-    value: "25  55% 80%",
-    card: "25  25% 96%",
-    sidebar: "25  38% 87%",
-    preview: "25  70% 62%",
+    value: "25  16% 94%",
+    card: "0 0% 99%",
+    sidebar: "25  22% 91%",
+    preview: "25  70% 58%",
   },
   {
     name: "Lavender",
-    value: "265 38% 80%",
-    card: "265 18% 96%",
-    sidebar: "265 26% 87%",
-    preview: "265 55% 65%",
+    value: "265 11% 94%",
+    card: "0 0% 99%",
+    sidebar: "265 15% 91%",
+    preview: "265 55% 60%",
   },
   {
     name: "Amber",
-    value: "38  55% 78%",
-    card: "38  22% 96%",
-    sidebar: "38  35% 85%",
-    preview: "38  70% 58%",
+    value: "38  14% 94%",
+    card: "0 0% 99%",
+    sidebar: "38  19% 91%",
+    preview: "38  70% 52%",
   },
   {
     name: "Teal",
-    value: "175 40% 77%",
-    card: "175 18% 95%",
-    sidebar: "175 28% 84%",
-    preview: "175 55% 50%",
+    value: "175 12% 93%",
+    card: "0 0% 99%",
+    sidebar: "175 16% 90%",
+    preview: "175 55% 45%",
   },
   {
     name: "Slate",
-    value: "215 35% 78%",
-    card: "215 15% 96%",
-    sidebar: "215 24% 85%",
-    preview: "215 55% 55%",
+    value: "215 10% 93%",
+    card: "0 0% 99%",
+    sidebar: "215 14% 90%",
+    preview: "215 55% 50%",
   },
 ];
 
 const STORAGE_KEY = "light-bg-color";
-const DEFAULT = "140 25% 82%";
+const DEFAULT = "140 10% 94%";
 
 function applyColor(entry: (typeof BG_COLORS)[number]) {
   const root = document.documentElement;

@@ -1,7 +1,7 @@
 package com.codetracker.codetracker_backend.dto;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,10 +21,8 @@ public record ProblemWithProgressDto(
         String status,
         Long bestTime
 ) {
-    public static ProblemWithProgressDto toDto(Problem problem, List<UserProgress> userProgressList) {
-        Optional<UserProgress> progress = userProgressList.stream()
-                .filter(p -> p.getProblem().getId().equals(problem.getId()))
-                .findFirst();
+    public static ProblemWithProgressDto toDto(Problem problem, Map<UUID, UserProgress> progressMap) {
+        UserProgress progress = progressMap.get(problem.getId());
 
         List<String> tag = problem.getTags() != null ?
                 problem.getTags().stream()
@@ -45,8 +43,8 @@ public record ProblemWithProgressDto(
                 problem.getSlug(),
                 externalUrlDtos,
                 tag,
-                progress.map(UserProgress::getStatus).orElse("not_started"),
-                progress.map(UserProgress::getBestTime).orElse(null)
+                progress != null ? progress.getStatus() : "not_started",
+                progress != null ? progress.getBestTime() : null
         );
     }
 }

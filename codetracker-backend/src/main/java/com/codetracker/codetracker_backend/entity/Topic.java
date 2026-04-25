@@ -2,6 +2,7 @@ package com.codetracker.codetracker_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "topics")
 @Data
+@BatchSize(size = 20)
 public class Topic {
     @Id
     private UUID id;

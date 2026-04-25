@@ -32,9 +32,10 @@ public class RedisConfig implements CachingConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(RedisConfig.class);
 
-    public static final String CACHE_PROBLEMS = "problems";
-    public static final String CACHE_TOPICS   = "topics";
-    public static final String CACHE_TAGS     = "tags";
+    public static final String CACHE_PROBLEMS        = "problems";
+    public static final String CACHE_TOPICS          = "topics";
+    public static final String CACHE_TAGS            = "tags";
+    public static final String CACHE_TOPICS_PROGRESS = "topics-progress";
 
     @Bean
     public GenericJackson2JsonRedisSerializer redisSerializer() {
@@ -76,9 +77,10 @@ public class RedisConfig implements CachingConfigurer {
                 .disableCachingNullValues();
 
         Map<String, RedisCacheConfiguration> perCacheConfig = Map.of(
-                CACHE_PROBLEMS, defaultConfig.entryTtl(Duration.ofHours(6)),
-                CACHE_TOPICS,   defaultConfig.entryTtl(Duration.ofHours(12)),
-                CACHE_TAGS,     defaultConfig.entryTtl(Duration.ofHours(6))
+                CACHE_PROBLEMS,        defaultConfig.entryTtl(Duration.ofHours(6)),
+                CACHE_TOPICS,          defaultConfig.entryTtl(Duration.ofHours(12)),
+                CACHE_TAGS,            defaultConfig.entryTtl(Duration.ofHours(6)),
+                CACHE_TOPICS_PROGRESS, defaultConfig.entryTtl(Duration.ofMinutes(5))
         );
 
         return RedisCacheManager.builder(factory)

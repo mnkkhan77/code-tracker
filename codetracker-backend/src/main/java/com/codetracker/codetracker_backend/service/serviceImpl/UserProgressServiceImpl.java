@@ -7,8 +7,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
+import com.codetracker.codetracker_backend.config.RedisConfig;
 import com.codetracker.codetracker_backend.dto.ProgressRequestDto;
 import com.codetracker.codetracker_backend.dto.ProgressResponseDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
@@ -61,11 +63,13 @@ public class UserProgressServiceImpl implements UserProgressService {
     }
 
     @Override
+    @CacheEvict(value = RedisConfig.CACHE_TOPICS_PROGRESS, allEntries = true)
     public void deleteProgress(@NonNull UUID progressId) {
         userProgressRepository.deleteById(progressId);
     }
 
     @Override
+    @CacheEvict(value = RedisConfig.CACHE_TOPICS_PROGRESS, key = "#user.id")
     public ProgressResponseDto upsertProgress(User user, Problem problem, ProgressRequestDto dto) {
         UserProgress progress = userProgressRepository
                 .findByUserIdAndProblemId(user.getId(), problem.getId())
