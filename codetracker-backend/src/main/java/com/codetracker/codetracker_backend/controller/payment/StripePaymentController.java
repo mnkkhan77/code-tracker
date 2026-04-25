@@ -6,10 +6,13 @@ import com.codetracker.codetracker_backend.entity.Purchase;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
+import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -177,16 +180,17 @@ public class StripePaymentController {
 
         switch (event.getType()) {
             case "checkout.session.completed" -> {
-                Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
-                if (session != null) {
-                    completePurchase(session.getMetadata().get("purchaseId"),
-                                     session.getMetadata().get("userId"));
+                Map<String, String> meta = extractMetadata(event);
+                if (meta != null) {
+                    completePurchase(meta.get("purchaseId"), meta.get("userId"));
+                } else {
+                    log.warn("checkout.session.completed: could not extract metadata (event={})", event.getId());
                 }
             }
             case "checkout.session.expired" -> {
-                Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
-                if (session != null) {
-                    failPurchase(session.getMetadata().get("purchaseId"));
+                Map<String, String> meta = extractMetadata(event);
+                if (meta != null) {
+                    failPurchase(meta.get("purchaseId"));
                 }
             }
             case "payment_intent.payment_failed" ->
@@ -195,6 +199,37 @@ public class StripePaymentController {
         }
 
         return ResponseEntity.ok("received");
+    }
+
+    /**
+     * Extracts the session metadata map from a Stripe event.
+     * Falls back to raw JSON parsing when the SDK version doesn't match the
+     * webhook API version, which would cause getDataObjectDeserializer() to
+     * return Optional.empty() even for a valid event.
+     */
+    private Map<String, String> extractMetadata(Event event) {
+        EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
+
+        // Happy path: SDK version matches webhook API version
+        if (deserializer.getObject().isPresent()) {
+            Session session = (Session) deserializer.getObject().get();
+            return session.getMetadata();
+        }
+
+        // Fallback: parse metadata directly from the raw JSON payload
+        try {
+            String rawJson = deserializer.getRawJson();
+            JsonObject obj = JsonParser.parseString(rawJson).getAsJsonObject();
+            JsonObject metaObj = obj.getAsJsonObject("metadata");
+            if (metaObj == null) return null;
+            Map<String, String> meta = new java.util.HashMap<>();
+            metaObj.entrySet().forEach(e -> meta.put(e.getKey(), e.getValue().getAsString()));
+            log.info("Extracted metadata via raw JSON fallback for event {}", event.getId());
+            return meta;
+        } catch (Exception e) {
+            log.error("Failed to extract metadata from Stripe event {}: {}", event.getId(), e.getMessage());
+            return null;
+        }
     }
 
     private void completePurchase(String purchaseId, String userId) {
