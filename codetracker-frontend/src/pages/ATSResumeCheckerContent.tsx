@@ -55,7 +55,7 @@ const ANALYSIS_MODES: {
 ];
 
 function ATSResumeCheckerContent() {
-  const { credits, resumes, loading, uploadResume, purchaseCredits, deleteResume } =
+  const { credits, resumes, loading, uploadResume, deleteResume } =
     useATSResumeChecker();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -507,7 +507,6 @@ function ATSResumeCheckerContent() {
       <CreditPurchaseModal
         open={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
-        onPurchase={purchaseCredits}
       />
 
       {selectedResume && (

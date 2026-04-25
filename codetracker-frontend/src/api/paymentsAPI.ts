@@ -1,6 +1,12 @@
 import apiClient from "./apiClient";
 
-export type ProductType = "SUBSCRIPTION" | "RESUME_ANALYSIS" | "CREDITS";
+export type ProductType =
+  | "SUBSCRIPTION"
+  | "RESUME_ANALYSIS"
+  | "CREDITS"
+  | "CREDITS_SMALL"
+  | "CREDITS_MEDIUM"
+  | "CREDITS_LARGE";
 
 export interface CheckoutResponse {
   sessionUrl: string;

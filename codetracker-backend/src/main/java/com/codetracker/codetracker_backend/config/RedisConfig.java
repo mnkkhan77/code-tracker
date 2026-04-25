@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
@@ -36,7 +37,8 @@ public class RedisConfig implements CachingConfigurer {
     public static final String CACHE_TAGS     = "tags";
 
     @Bean
-    public ObjectMapper redisObjectMapper() {
+    public GenericJackson2JsonRedisSerializer redisSerializer() {
+        // Built inline — NOT a Spring bean — so Spring MVC never picks it up for HTTP serialization
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.activateDefaultTyping(
@@ -44,12 +46,7 @@ public class RedisConfig implements CachingConfigurer {
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY
         );
-        return mapper;
-    }
-
-    @Bean
-    public GenericJackson2JsonRedisSerializer redisSerializer(ObjectMapper redisObjectMapper) {
-        return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+        return new GenericJackson2JsonRedisSerializer(mapper);
     }
 
     @Bean

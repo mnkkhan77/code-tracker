@@ -34,13 +34,16 @@ spring:
       timeout: 2000ms
       connect-timeout: 2000ms
 
+filebase:
+  access-key: ${FILEBASE_ACCESS_KEY:}
+  secret-key: ${FILEBASE_SECRET_KEY:}
+  bucket: ${FILEBASE_BUCKET:}
+
 app:
   jwt:
     secret: ${JWT_SECRET:}
     access-validity-seconds: 86400   # 1 day
     refresh-validity-seconds: 604800 # 7d
-  uploads:
-    resumes-dir: uploads/resumes
   openai:
     api-key: ${OPENAI_API_KEY:}
     model: ${OPENAI_MODEL:llama-3.3-70b-versatile}

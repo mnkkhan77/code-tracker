@@ -41,8 +41,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StripePaymentController {
 
-    private static final int CREDITS_PACK_AMOUNT = 100;
-
     private final PurchaseRepository purchaseRepository;
     private final UserRepository userRepository;
 
@@ -55,22 +53,40 @@ public class StripePaymentController {
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
+    // Price in cents
     private static final Map<String, Long> PRODUCT_PRICES_CENTS = Map.of(
             "SUBSCRIPTION",    999L,
             "RESUME_ANALYSIS", 499L,
-            "CREDITS",         1499L
+            "CREDITS",         1499L,
+            "CREDITS_SMALL",   500L,
+            "CREDITS_MEDIUM",  1000L,
+            "CREDITS_LARGE",   2000L
+    );
+
+    // Credits granted per product type (only for credit packs)
+    private static final Map<String, Integer> CREDITS_AMOUNTS = Map.of(
+            "CREDITS",        100,
+            "CREDITS_SMALL",  10,
+            "CREDITS_MEDIUM", 20,
+            "CREDITS_LARGE",  35
     );
 
     private static final Map<String, String> PRODUCT_NAMES = Map.of(
             "SUBSCRIPTION",    "Premium Subscription",
             "RESUME_ANALYSIS", "Resume Analysis",
-            "CREDITS",         "Credits Pack (100 credits)"
+            "CREDITS",         "Credits Pack (100 credits)",
+            "CREDITS_SMALL",   "Starter Credits (10 credits)",
+            "CREDITS_MEDIUM",  "Professional Credits (20 credits)",
+            "CREDITS_LARGE",   "Premium Credits (35 credits)"
     );
 
     private static final Map<String, String> PRODUCT_DESCRIPTIONS = Map.of(
             "SUBSCRIPTION",    "Monthly access to all premium features",
             "RESUME_ANALYSIS", "AI-powered resume review and scoring",
-            "CREDITS",         "100 platform credits for enhanced features"
+            "CREDITS",         "100 platform credits for enhanced features",
+            "CREDITS_SMALL",   "10 credits — perfect for trying out the ATS checker",
+            "CREDITS_MEDIUM",  "20 credits — most popular for job seekers",
+            "CREDITS_LARGE",   "35 credits — best value for multiple resumes"
     );
 
     @Operation(summary = "Create a Stripe checkout session")
@@ -101,9 +117,15 @@ public class StripePaymentController {
 
         Stripe.apiKey = stripeSecretKey;
 
+        // Credit purchases redirect back to the ATS checker after success
+        String successUrl = frontendUrl + "/payment/success?session_id={CHECKOUT_SESSION_ID}";
+        if (CREDITS_AMOUNTS.containsKey(productType)) {
+            successUrl += "&from=ats";
+        }
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(frontendUrl + "/payment/success?session_id={CHECKOUT_SESSION_ID}")
+                .setSuccessUrl(successUrl)
                 .setCancelUrl(frontendUrl + "/payment/cancel")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
@@ -167,12 +189,8 @@ public class StripePaymentController {
                     failPurchase(session.getMetadata().get("purchaseId"));
                 }
             }
-            case "payment_intent.payment_failed" -> {
-                // payment_intent.payment_failed doesn't carry purchaseId metadata directly,
-                // but the associated checkout.session.expired will fire too.
-                // Log it for visibility.
+            case "payment_intent.payment_failed" ->
                 log.warn("Payment failed event received: {}", event.getId());
-            }
             default -> log.debug("Unhandled Stripe event: {}", event.getType());
         }
 
@@ -191,12 +209,12 @@ public class StripePaymentController {
             purchaseRepository.save(purchase);
             log.info("Purchase {} completed (type={})", purchaseId, purchase.getProductType());
 
-            // Grant credits if product is CREDITS pack
-            if ("CREDITS".equals(purchase.getProductType()) && userId != null) {
+            Integer creditsToAdd = CREDITS_AMOUNTS.get(purchase.getProductType());
+            if (creditsToAdd != null && userId != null) {
                 userRepository.findById(Objects.requireNonNull(UUID.fromString(userId))).ifPresent(user -> {
-                    user.setCredits(user.getCredits() + CREDITS_PACK_AMOUNT);
+                    user.setCredits(user.getCredits() + creditsToAdd);
                     userRepository.save(user);
-                    log.info("Granted {} credits to user {}", CREDITS_PACK_AMOUNT, userId);
+                    log.info("Granted {} credits to user {} (type={})", creditsToAdd, userId, purchase.getProductType());
                 });
             }
         });
@@ -205,7 +223,7 @@ public class StripePaymentController {
     private void failPurchase(String purchaseId) {
         if (purchaseId == null) return;
         purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
-            if ("COMPLETED".equals(purchase.getStatus())) return; // never downgrade completed
+            if ("COMPLETED".equals(purchase.getStatus())) return;
             purchase.setStatus("FAILED");
             purchaseRepository.save(purchase);
             log.info("Purchase {} marked FAILED", purchaseId);

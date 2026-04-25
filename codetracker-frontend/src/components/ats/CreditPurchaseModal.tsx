@@ -8,62 +8,58 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { createCheckoutSession, type ProductType } from "@/api/paymentsAPI";
 import { motion } from "framer-motion";
 import { CreditCard, Crown, Star, Zap } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface CreditPurchaseModalProps {
   open: boolean;
   onClose: () => void;
-  onPurchase: (packageType: "small" | "medium" | "large") => Promise<boolean>;
 }
 
-export function CreditPurchaseModal({
-  open,
-  onClose,
-  onPurchase,
-}: CreditPurchaseModalProps) {
-  const [purchasing, setPurchasing] = useState<string | null>(null);
+const packages = [
+  {
+    id: "CREDITS_SMALL" as ProductType,
+    name: "Starter",
+    credits: 10,
+    price: 5,
+    icon: Zap,
+    popular: false,
+    description: "Perfect for trying out the service",
+  },
+  {
+    id: "CREDITS_MEDIUM" as ProductType,
+    name: "Professional",
+    credits: 20,
+    price: 10,
+    icon: Star,
+    popular: true,
+    description: "Most popular choice for job seekers",
+  },
+  {
+    id: "CREDITS_LARGE" as ProductType,
+    name: "Premium",
+    credits: 35,
+    price: 20,
+    icon: Crown,
+    popular: false,
+    description: "Best value for multiple resumes",
+  },
+];
 
-  const packages = [
-    {
-      id: "small" as const,
-      name: "Starter",
-      credits: 10,
-      price: 5,
-      icon: Zap,
-      popular: false,
-      description: "Perfect for trying out the service",
-    },
-    {
-      id: "medium" as const,
-      name: "Professional",
-      credits: 20,
-      price: 10,
-      icon: Star,
-      popular: true,
-      description: "Most popular choice for job seekers",
-    },
-    {
-      id: "large" as const,
-      name: "Premium",
-      credits: 35,
-      price: 20,
-      icon: Crown,
-      popular: false,
-      description: "Best value for multiple resumes",
-    },
-  ];
+export function CreditPurchaseModal({ open, onClose }: CreditPurchaseModalProps) {
+  const [redirecting, setRedirecting] = useState<ProductType | null>(null);
 
-  const handlePurchase = async (packageType: "small" | "medium" | "large") => {
-    setPurchasing(packageType);
+  const handlePurchase = async (productType: ProductType) => {
+    setRedirecting(productType);
     try {
-      const success = await onPurchase(packageType);
-      if (success) {
-        onClose();
-      }
-    } finally {
-      setPurchasing(null);
+      const { sessionUrl } = await createCheckoutSession(productType);
+      window.location.href = sessionUrl;
+    } catch {
+      toast.error("Could not start checkout. Please try again.");
+      setRedirecting(null);
     }
   };
 
@@ -76,7 +72,7 @@ export function CreditPurchaseModal({
           </DialogTitle>
           <DialogDescription className="text-center">
             Purchase credits to analyze your resumes with our ATS compatibility
-            checker.
+            checker. Powered by Stripe — safe and secure.
           </DialogDescription>
         </DialogHeader>
 
@@ -115,9 +111,7 @@ export function CreditPurchaseModal({
 
                     <div className="space-y-1">
                       <div className="text-4xl font-bold">{pkg.credits}</div>
-                      <div className="text-base text-muted-foreground">
-                        Credits
-                      </div>
+                      <div className="text-base text-muted-foreground">Credits</div>
                     </div>
                   </div>
 
@@ -133,19 +127,19 @@ export function CreditPurchaseModal({
 
                     <Button
                       onClick={() => handlePurchase(pkg.id)}
-                      disabled={purchasing !== null}
+                      disabled={redirecting !== null}
                       className="w-full"
                       variant={pkg.popular ? "default" : "outline"}
                     >
-                      {purchasing === pkg.id ? (
+                      {redirecting === pkg.id ? (
                         <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Processing...</span>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                          <span>Redirecting…</span>
                         </div>
                       ) : (
                         <>
                           <CreditCard className="w-4 h-4 mr-2" />
-                          Purchase
+                          Pay with Stripe
                         </>
                       )}
                     </Button>
@@ -157,10 +151,7 @@ export function CreditPurchaseModal({
         </div>
 
         <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>
-            Secure payment processing • Cancel anytime • 30-day money-back
-            guarantee
-          </p>
+          <p>Secure checkout via Stripe • Credits added instantly after payment</p>
         </div>
       </DialogContent>
     </Dialog>

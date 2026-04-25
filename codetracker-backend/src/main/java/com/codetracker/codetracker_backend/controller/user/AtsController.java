@@ -2,10 +2,7 @@ package com.codetracker.codetracker_backend.controller.user;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -15,12 +12,13 @@ import java.util.UUID;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +32,7 @@ import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
 import com.codetracker.codetracker_backend.repository.ResumeRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
+import com.codetracker.codetracker_backend.service.FilebaseService;
 import com.codetracker.codetracker_backend.service.OpenAiService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,10 +55,8 @@ public class AtsController {
     private final ResumeRepository resumeRepository;
     private final PurchaseRepository purchaseRepository;
     private final OpenAiService openAiService;
+    private final FilebaseService filebaseService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Value("${app.uploads.resumes-dir}")
-    private String resumesDir;
 
     private static final Map<String, int[]> PACKAGES = Map.of(
             "small",  new int[]{5,  5},
@@ -146,81 +143,85 @@ public class AtsController {
                     .body(Map.of("success", false, "message", "Only PDF and DOCX files are accepted."));
         }
 
-        Path destination = null;
-        Resume resume = null;
+        byte[] fileBytes;
         try {
-            // Save file to disk
-            Path uploadPath = Paths.get(resumesDir, user.getId().toString());
-            Files.createDirectories(uploadPath);
-            String storedName = UUID.randomUUID() + "_" + originalName;
-            destination = uploadPath.resolve(storedName);
-            Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+            fileBytes = file.getBytes();
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("success", false, "message", "Failed to read uploaded file: " + e.getMessage()));
+        }
 
-            // Extract text — fail fast before deducting credit
-            String resumeText;
-            try {
-                resumeText = extractText(file);
-                if (resumeText == null || resumeText.isBlank()) {
-                    Files.deleteIfExists(destination);
-                    return ResponseEntity.badRequest()
-                            .body(Map.of("success", false, "message", "Could not extract text from the PDF. Please ensure it is not scanned/image-only."));
-                }
-            } catch (Exception e) {
-                Files.deleteIfExists(destination);
+        // Extract text before deducting credits — fail fast if unreadable
+        String resumeText;
+        try {
+            resumeText = extractText(fileBytes);
+            if (resumeText == null || resumeText.isBlank()) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("success", false, "message", "Failed to read PDF: " + e.getMessage()));
+                        .body(Map.of("success", false, "message",
+                                "Could not extract text from the file. Ensure it is not a scanned/image-only PDF."));
             }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Failed to read file: " + e.getMessage()));
+        }
 
-            // Deduct credits based on analysis mode
-            user.setCredits(user.getCredits() - creditCost);
+        // Deduct credits
+        user.setCredits(user.getCredits() - creditCost);
+        userRepository.save(user);
+
+        // Upload to Filebase
+        String key = "resumes/" + user.getId() + "/" + UUID.randomUUID() + "_" + originalName;
+        String contentType = originalName.endsWith(".pdf")
+                ? "application/pdf"
+                : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        try {
+            filebaseService.upload(key, fileBytes, contentType);
+        } catch (Exception e) {
+            // Restore credits if upload fails
+            user.setCredits(user.getCredits() + creditCost);
             userRepository.save(user);
+            log.error("[Filebase] Upload failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("success", false, "message", "Failed to store file. Please try again."));
+        }
 
-            // Save resume record
-            resume = new Resume();
-            resume.setUser(user);
-            resume.setFilename(originalName);
-            resume.setFilePath(destination.toString());
-            resume.setStatus("ANALYZING");
-            resumeRepository.save(resume);
+        // Save resume record — filePath stores the Filebase object key
+        Resume resume = new Resume();
+        resume.setUser(user);
+        resume.setFilename(originalName);
+        resume.setFilePath(key);
+        resume.setStatus("ANALYZING");
+        resumeRepository.save(resume);
 
-            // Call Groq — route to appropriate analysis method
-            String analysisJson = isDetailed
-                    ? openAiService.analyzeResumeDetailed(resumeText)
-                    : openAiService.analyzeResume(resumeText, hasJd ? jobDescription : null);
-            if (analysisJson != null) {
-                try {
-                    JsonNode analysis = objectMapper.readTree(analysisJson);
-                    int atsScore = analysis.path("atsScore").asInt(0);
-                    resume.setAtsScore(atsScore);
-                    resume.setAnalysis(analysisJson);
-                    resume.setStatus("COMPLETED");
-                } catch (Exception e) {
-                    log.warn("Failed to parse OpenAI response: {}", e.getMessage());
-                    resume.setStatus("FAILED");
-                }
-            } else {
-                log.warn("OpenAI returned null for resume {}", resume.getId());
+        // Run AI analysis
+        String analysisJson = isDetailed
+                ? openAiService.analyzeResumeDetailed(resumeText)
+                : openAiService.analyzeResume(resumeText, hasJd ? jobDescription : null);
+
+        if (analysisJson != null) {
+            try {
+                JsonNode analysis = objectMapper.readTree(analysisJson);
+                resume.setAtsScore(analysis.path("atsScore").asInt(0));
+                resume.setAnalysis(analysisJson);
+                resume.setStatus("COMPLETED");
+            } catch (Exception e) {
+                log.warn("Failed to parse analysis response: {}", e.getMessage());
                 resume.setStatus("FAILED");
             }
-            resumeRepository.save(resume);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("resumeId", resume.getId());
-            response.put("filename", originalName);
-            response.put("remainingCredits", user.getCredits());
-            response.put("status", resume.getStatus());
-            if (resume.getAtsScore() != null) response.put("atsScore", resume.getAtsScore());
-            return ResponseEntity.ok(response);
-
-        } catch (IOException e) {
-            // Roll back file if saved
-            if (destination != null) {
-                try { Files.deleteIfExists(destination); } catch (IOException ignored) {}
-            }
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("success", false, "message", "Failed to process file: " + e.getMessage()));
+        } else {
+            log.warn("AI returned null for resume {}", resume.getId());
+            resume.setStatus("FAILED");
         }
+        resumeRepository.save(resume);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("resumeId", resume.getId());
+        response.put("filename", originalName);
+        response.put("remainingCredits", user.getCredits());
+        response.put("status", resume.getStatus());
+        if (resume.getAtsScore() != null) response.put("atsScore", resume.getAtsScore());
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Delete a resume by ID")
@@ -229,27 +230,23 @@ public class AtsController {
         @ApiResponse(responseCode = "403", description = "Not authorized"),
         @ApiResponse(responseCode = "404", description = "Resume not found")
     })
-    @org.springframework.web.bind.annotation.DeleteMapping("/resumes/{id}")
+    @DeleteMapping("/resumes/{id}")
     public ResponseEntity<Map<String, Object>> deleteResume(
-            @org.springframework.web.bind.annotation.PathVariable @NonNull UUID id,
+            @PathVariable @NonNull UUID id,
             Authentication auth) {
 
         User user = resolveUser(auth);
-        Resume resume = resumeRepository.findById(id)
-                .orElse(null);
+        Resume resume = resumeRepository.findById(id).orElse(null);
 
-        if (resume == null) {
-            return ResponseEntity.notFound().build();
-        }
+        if (resume == null) return ResponseEntity.notFound().build();
         if (!resume.getUser().getId().equals(user.getId())) {
             return ResponseEntity.status(403).body(Map.of("success", false, "message", "Not authorized"));
         }
 
-        // Delete file from disk
         try {
-            Files.deleteIfExists(Paths.get(resume.getFilePath()));
-        } catch (IOException e) {
-            log.warn("Could not delete file {}: {}", resume.getFilePath(), e.getMessage());
+            filebaseService.delete(resume.getFilePath());
+        } catch (Exception e) {
+            log.warn("[Filebase] Could not delete {}: {}", resume.getFilePath(), e.getMessage());
         }
 
         resumeRepository.deleteById(id);
@@ -279,6 +276,12 @@ public class AtsController {
                             map.put("analysisResult", null);
                         }
                     }
+                    // 1-hour presigned download URL
+                    try {
+                        map.put("fileUrl", filebaseService.presignedUrl(r.getFilePath(), Duration.ofHours(1)));
+                    } catch (Exception e) {
+                        log.warn("[Filebase] Could not generate presigned URL for {}: {}", r.getFilePath(), e.getMessage());
+                    }
                     return map;
                 })
                 .toList();
@@ -286,8 +289,8 @@ public class AtsController {
         return ResponseEntity.ok(result);
     }
 
-    private String extractText(MultipartFile file) throws IOException {
-        try (PDDocument doc = Loader.loadPDF(file.getBytes())) {
+    private String extractText(byte[] bytes) throws IOException {
+        try (PDDocument doc = Loader.loadPDF(bytes)) {
             return new PDFTextStripper().getText(doc);
         }
     }
