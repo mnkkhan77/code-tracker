@@ -142,7 +142,7 @@ export default function ProblemsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              All Problems ({(filteredProblems || []).length})
+              All Problems ({totalElements})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -154,7 +154,7 @@ export default function ProblemsPage() {
               tagFilter={tagFilter}
               setTagFilter={setTagFilter}
               allTags={allTags}
-              problemsCount={(filteredProblems || []).length}
+              problemsCount={totalElements}
               showStatusFilter={showStatusFeature}
               searchValue={searchValue}
               onSearchChange={onSearchChange}
