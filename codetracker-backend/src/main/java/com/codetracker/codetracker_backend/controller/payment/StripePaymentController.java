@@ -6,8 +6,8 @@ import com.codetracker.codetracker_backend.entity.Purchase;
 import com.codetracker.codetracker_backend.entity.User;
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
 import com.codetracker.codetracker_backend.repository.UserRepository;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -219,11 +219,11 @@ public class StripePaymentController {
         // Fallback: parse metadata directly from the raw JSON payload
         try {
             String rawJson = deserializer.getRawJson();
-            JsonObject obj = JsonParser.parseString(rawJson).getAsJsonObject();
-            JsonObject metaObj = obj.getAsJsonObject("metadata");
-            if (metaObj == null) return null;
+            JsonNode obj = new ObjectMapper().readTree(rawJson);
+            JsonNode metaNode = obj.get("metadata");
+            if (metaNode == null || metaNode.isNull()) return null;
             Map<String, String> meta = new java.util.HashMap<>();
-            metaObj.entrySet().forEach(e -> meta.put(e.getKey(), e.getValue().getAsString()));
+            metaNode.properties().forEach(e -> meta.put(e.getKey(), e.getValue().asText()));
             log.info("Extracted metadata via raw JSON fallback for event {}", event.getId());
             return meta;
         } catch (Exception e) {
