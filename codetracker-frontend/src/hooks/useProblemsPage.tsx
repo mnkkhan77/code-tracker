@@ -2,22 +2,15 @@
 import { getAllTags } from "@/api/problemsAPI";
 import { scheduleReviewApi } from "@/api/remindersAPI";
 import { useAuth } from "@/hooks/use-auth";
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { usePaginationState } from "@/hooks/usePaginationState";
 import { ProblemModel } from "@/mappers/problemMapper";
 import * as problemsService from "@/services/problemsService";
 import * as progressService from "@/services/progressService";
 import { PageResponse, Problem, ProgressStatus } from "@/types/api";
+import { buildCacheKey, CachedPage } from "@/utils/problemCacheKey";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-
-type CachedPage = Pick<PageResponse<ProblemModel>, "content" | "page">;
-
-function buildCacheKey(
-  page: number, difficulty: string, status: string, tags: string[],
-  search: string, sortBy: string, sortDir: string,
-) {
-  return [page, difficulty, status, [...tags].sort().join(","), search, sortBy, sortDir].join("|");
-}
 
 export function useProblemsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -31,9 +24,7 @@ export function useProblemsPage() {
   const [tagFilter, setTagFilterState] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
 
-  // Search: searchInput updates immediately (UI), search is debounced (API)
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
+  const { searchInput, setSearchInput, search } = useDebouncedSearch(resetPage);
 
   // Sort
   const [sortBy, setSortByState] = useState("title");
@@ -42,15 +33,6 @@ export function useProblemsPage() {
   const cache = useRef(new Map<string, CachedPage>());
   const hasEverLoaded = useRef(false);
   const clearCache = useCallback(() => cache.current.clear(), []);
-
-  // Debounce search input → search state
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setSearch(searchInput);
-      resetPage();
-    }, 400);
-    return () => clearTimeout(id);
-  }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setStatusFilter = useCallback((val: string) => { setStatusFilterState(val); resetPage(); }, [resetPage]);
   const setDifficultyFilter = useCallback((val: string) => { setDifficultyFilterState(val); resetPage(); }, [resetPage]);
@@ -63,7 +45,7 @@ export function useProblemsPage() {
 
   useEffect(() => {
     if (user) {
-      getAllTags().then(setAllTags).catch(() => {});
+      getAllTags().then(setAllTags).catch((err) => console.error("Failed to load tags:", err));
     }
   }, [user]);
 
@@ -77,7 +59,7 @@ export function useProblemsPage() {
         if (!bustCache && cache.current.has(cacheKey)) {
           const cached = cache.current.get(cacheKey)!;
           setProblems(cached.content);
-          updateFromPage(cached as any);
+          updateFromPage(cached as PageResponse<ProblemModel>);
           return;
         }
 

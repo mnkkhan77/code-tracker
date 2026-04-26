@@ -1,24 +1,16 @@
 // src/pages/admin/ATSResumeCheckerContent
 import { AnalysisMode } from "@/api/atsAPI";
 import { CreditPurchaseModal } from "@/components/ats/CreditPurchaseModal";
+import { DeleteConfirmDialog } from "@/components/ats/DeleteConfirmDialog";
+import { JobDescriptionModal } from "@/components/ats/JobDescriptionModal";
 import { ResumeReportModal } from "@/components/ats/ResumeReportModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useATSResumeChecker, useAuth } from "@/hooks/useATSResumeChecker";
 import { motion } from "framer-motion";
 import {
-  AlertTriangle,
   CheckCircle2,
-  ClipboardPaste,
   CreditCard,
   FileText,
   Lightbulb,
@@ -429,80 +421,21 @@ function ATSResumeCheckerContent() {
         </Card>
       </motion.div>
 
-      {/* Job Description Modal */}
-      <Dialog open={showJdModal} onOpenChange={setShowJdModal}>
-        <DialogContent className="w-[95vw] max-w-2xl rounded-md">
-          <DialogHeader>
-            <DialogTitle>Add Job Description</DialogTitle>
-            <DialogDescription>
-              Paste the job description to match your resume against it. This enables keyword comparison and costs 2.5 credits instead of 1.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              onClick={pasteFromClipboard}
-              className="text-xs"
-            >
-              <ClipboardPaste className="w-3.5 h-3.5 mr-1.5" />
-              Paste from Clipboard
-            </Button>
-            <textarea
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-              rows={10}
-              placeholder="Paste the job description here..."
-              value={jdDraft}
-              onChange={(e) => setJdDraft(e.target.value)}
-              autoFocus
-            />
-          </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setJdDraft("");
-                setJobDescription("");
-                setShowJdModal(false);
-              }}
-            >
-              Clear & Close
-            </Button>
-            <Button onClick={saveJd} disabled={!jdDraft.trim()}>
-              Apply Job Description
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <JobDescriptionModal
+        open={showJdModal}
+        onClose={() => setShowJdModal(false)}
+        jdDraft={jdDraft}
+        setJdDraft={setJdDraft}
+        onClear={() => { setJdDraft(""); setJobDescription(""); setShowJdModal(false); }}
+        onSave={saveJd}
+        pasteFromClipboard={pasteFromClipboard}
+      />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!resumeToDelete} onOpenChange={(open) => !open && setResumeToDelete(null)}>
-        <DialogContent className="w-[95vw] max-w-md rounded-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              Delete Resume Report
-            </DialogTitle>
-            <DialogDescription className="space-y-2 pt-1">
-              <span className="block">
-                This will permanently delete the resume and its analysis report. This action cannot be undone.
-              </span>
-              <span className="block font-medium text-foreground">
-                Credits used for this analysis will not be refunded.
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setResumeToDelete(null)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        open={!!resumeToDelete}
+        onClose={() => setResumeToDelete(null)}
+        onConfirm={handleConfirmDelete}
+      />
 
       <CreditPurchaseModal
         open={showPurchaseModal}

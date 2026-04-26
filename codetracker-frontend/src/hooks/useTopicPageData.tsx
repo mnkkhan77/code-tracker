@@ -2,21 +2,14 @@
 import * as problemsAPI from "@/api/problemsAPI";
 import apiClient from "@/api/apiClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { usePaginationState } from "@/hooks/usePaginationState";
 import { mapProblemsDtoToModel, ProblemModel } from "@/mappers/problemMapper";
 import * as progressService from "@/services/progressService";
 import { PageResponse, ProgressStatus, Topic } from "@/types/api";
+import { buildCacheKey, CachedPage } from "@/utils/problemCacheKey";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-
-type CachedPage = Pick<PageResponse<ProblemModel>, "content" | "page">;
-
-function buildCacheKey(
-  page: number, difficulty: string, status: string, tags: string[],
-  search: string, sortBy: string, sortDir: string,
-) {
-  return [page, difficulty, status, [...tags].sort().join(","), search, sortBy, sortDir].join("|");
-}
 
 export function useTopicPageData(slug: string) {
   const { user, isAdmin } = useAuth();
@@ -31,9 +24,7 @@ export function useTopicPageData(slug: string) {
   const [tagFilter, setTagFilterState] = useState<string[]>([]);
   const [seenTags, setSeenTags] = useState<Set<string>>(new Set());
 
-  // Search: searchInput is immediate (UI), search is debounced (API)
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
+  const { searchInput, setSearchInput, search } = useDebouncedSearch(resetPage);
 
   // Sort
   const [sortBy, setSortByState] = useState("title");
@@ -41,15 +32,6 @@ export function useTopicPageData(slug: string) {
 
   const cache = useRef(new Map<string, CachedPage>());
   const clearCache = useCallback(() => cache.current.clear(), []);
-
-  // Debounce search
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setSearch(searchInput);
-      resetPage();
-    }, 400);
-    return () => clearTimeout(id);
-  }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setStatusFilter = useCallback((val: string) => { setStatusFilterState(val); resetPage(); }, [resetPage]);
   const setDifficultyFilter = useCallback((val: string) => { setDifficultyFilterState(val); resetPage(); }, [resetPage]);
@@ -78,7 +60,7 @@ export function useTopicPageData(slug: string) {
         if (!bustCache && cache.current.has(cacheKey)) {
           const cached = cache.current.get(cacheKey)!;
           setProblems(cached.content);
-          updateFromPage(cached as any);
+          updateFromPage(cached as PageResponse<ProblemModel>);
           return;
         }
 

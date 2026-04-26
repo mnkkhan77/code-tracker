@@ -43,6 +43,6 @@ export const deleteProgress = async (problemId: string): Promise<void> => {
 };
 
 export const getUserProgress = async (): Promise<UserProgress[]> => {
-  const res = await apiClient.get<UserProgress[]>("/progress/me");
+  const res = await apiClient.get<UserProgress[]>("/progress");
   return res.data;
 };
