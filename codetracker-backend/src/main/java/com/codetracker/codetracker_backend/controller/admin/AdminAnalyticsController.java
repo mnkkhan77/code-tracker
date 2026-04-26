@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
+import com.codetracker.codetracker_backend.constants.ProgressStatusConstants;
 import com.codetracker.codetracker_backend.dto.AdminAnalyticsDto;
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.repository.AttemptRepository;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminAnalyticsController {
 
+    private static final int TREND_MONTHS = 6;
+
     private final UserRepository userRepository;
     private final ProblemRepository problemRepository;
     private final AttemptRepository attemptRepository;
@@ -54,7 +57,7 @@ public class AdminAnalyticsController {
         YearMonth current = YearMonth.now();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM yyyy");
 
-        for (int i = 5; i >= 0; i--) {
+        for (int i = TREND_MONTHS - 1; i >= 0; i--) {
             YearMonth month = current.minusMonths(i);
             LocalDateTime start = month.atDay(1).atStartOfDay();
             LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);
@@ -78,7 +81,7 @@ public class AdminAnalyticsController {
         List<AdminAnalyticsDto.TopicDataPoint> topicPoints = byTopic.entrySet().stream()
                 .map(e -> new AdminAnalyticsDto.TopicDataPoint(e.getKey(), e.getValue()))
                 .sorted((a, b) -> Long.compare(b.getCount(), a.getCount()))
-                .collect(Collectors.toList());
+                .toList();
 
         return new AdminAnalyticsDto.ProblemStats(easy, medium, hard, topicPoints);
     }
@@ -86,9 +89,9 @@ public class AdminAnalyticsController {
     private AdminAnalyticsDto.LearningStats buildLearningStats() {
         long totalAttempts = attemptRepository.count();
         long successfulAttempts = attemptRepository.countBySuccessful(true);
-        long completedProblems = userProgressRepository.countByStatus("completed");
-        long inProgressProblems = userProgressRepository.countByStatus("in_progress");
-        long notStartedProblems = userProgressRepository.countByStatus("not_started");
+        long completedProblems = userProgressRepository.countByStatus(ProgressStatusConstants.COMPLETED);
+        long inProgressProblems = userProgressRepository.countByStatus(ProgressStatusConstants.IN_PROGRESS);
+        long notStartedProblems = userProgressRepository.countByStatus(ProgressStatusConstants.NOT_STARTED);
 
         return new AdminAnalyticsDto.LearningStats(
                 totalAttempts, successfulAttempts,
@@ -113,7 +116,7 @@ public class AdminAnalyticsController {
         YearMonth current = YearMonth.now();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM yyyy");
 
-        for (int i = 5; i >= 0; i--) {
+        for (int i = TREND_MONTHS - 1; i >= 0; i--) {
             YearMonth month = current.minusMonths(i);
             LocalDateTime start = month.atDay(1).atStartOfDay();
             LocalDateTime end = month.atEndOfMonth().atTime(23, 59, 59);

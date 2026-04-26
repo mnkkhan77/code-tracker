@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
+import com.codetracker.codetracker_backend.constants.PurchaseStatusConstants;
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +17,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Tag(name = "Admin - Revenue", description = "Revenue analytics (admin only)")
 @RestController
@@ -40,7 +40,7 @@ public class AdminRevenueController {
         BigDecimal thisMonth = orZero(purchaseRepository.sumCompletedRevenueSince(monthStart));
         BigDecimal lastMonth = orZero(purchaseRepository.sumCompletedRevenueBetween(lastMonthStart, monthStart));
         BigDecimal total = orZero(purchaseRepository.sumCompletedRevenue());
-        long totalTransactions = purchaseRepository.countByStatus("COMPLETED");
+        long totalTransactions = purchaseRepository.countByStatus(PurchaseStatusConstants.COMPLETED);
         BigDecimal avg = totalTransactions > 0
                 ? total.divide(BigDecimal.valueOf(totalTransactions), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
@@ -57,7 +57,7 @@ public class AdminRevenueController {
                         p.getStatus() != null ? p.getStatus().toLowerCase() : "pending",
                         p.getCurrency()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         return new RevenueResponse(
                 new DailyStats(today, yesterday, percentChange(today, yesterday)),

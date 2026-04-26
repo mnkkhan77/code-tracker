@@ -41,7 +41,7 @@ public class TopicServiceImpl implements TopicService {
     public List<TopicDto> getAllTopics() {
         return topicRepository.findAll().stream()
                 .map(TopicDto::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

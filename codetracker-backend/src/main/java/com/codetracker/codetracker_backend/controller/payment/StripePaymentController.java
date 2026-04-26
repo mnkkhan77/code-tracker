@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.payment;
 
+import com.codetracker.codetracker_backend.constants.PurchaseStatusConstants;
 import com.codetracker.codetracker_backend.dto.CheckoutRequestDto;
 import com.codetracker.codetracker_backend.dto.CheckoutResponseDto;
 import com.codetracker.codetracker_backend.entity.Purchase;
@@ -235,11 +236,11 @@ public class StripePaymentController {
     private void completePurchase(String purchaseId, String userId) {
         if (purchaseId == null) return;
         purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
-            if ("COMPLETED".equals(purchase.getStatus())) {
+            if (PurchaseStatusConstants.COMPLETED.equals(purchase.getStatus())) {
                 log.warn("Purchase {} already completed, skipping duplicate webhook", purchaseId);
                 return;
             }
-            purchase.setStatus("COMPLETED");
+            purchase.setStatus(PurchaseStatusConstants.COMPLETED);
             purchase.setPaidAt(LocalDateTime.now());
             purchaseRepository.save(purchase);
             log.info("Purchase {} completed (type={})", purchaseId, purchase.getProductType());
@@ -258,7 +259,7 @@ public class StripePaymentController {
     private void failPurchase(String purchaseId) {
         if (purchaseId == null) return;
         purchaseRepository.findById(Objects.requireNonNull(UUID.fromString(purchaseId))).ifPresent(purchase -> {
-            if ("COMPLETED".equals(purchase.getStatus())) return;
+            if (PurchaseStatusConstants.COMPLETED.equals(purchase.getStatus())) return;
             purchase.setStatus("FAILED");
             purchaseRepository.save(purchase);
             log.info("Purchase {} marked FAILED", purchaseId);

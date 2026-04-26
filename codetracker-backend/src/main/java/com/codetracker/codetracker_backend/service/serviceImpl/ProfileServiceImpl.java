@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.codetracker.codetracker_backend.constants.ProgressStatusConstants;
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
 import com.codetracker.codetracker_backend.entity.Problem;
@@ -63,8 +64,8 @@ public class ProfileServiceImpl implements ProfileService {
         List<UserProgress> progressList = userProgressRepository.findByUserId(userId);
 
         long totalProblems = allProblems.size();
-        long completed = progressList.stream().filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus())).count();
-        long inProgress = progressList.stream().filter(p -> "IN_PROGRESS".equalsIgnoreCase(p.getStatus())).count();
+        long completed = progressList.stream().filter(p -> ProgressStatusConstants.COMPLETED.equalsIgnoreCase(p.getStatus())).count();
+        long inProgress = progressList.stream().filter(p -> ProgressStatusConstants.IN_PROGRESS.equalsIgnoreCase(p.getStatus())).count();
         long notStarted = totalProblems - completed - inProgress;
 
         long totalTimeSpent = progressList.stream()
@@ -81,7 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
                         Collectors.counting()));
 
         Map<String, Long> completedByDifficulty = progressList.stream()
-                .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                .filter(p -> ProgressStatusConstants.COMPLETED.equalsIgnoreCase(p.getStatus()))
                 .collect(Collectors.groupingBy(
                         p -> p.getProblem().getDifficulty() != null ? p.getProblem().getDifficulty().toLowerCase() : "unknown",
                         Collectors.counting()));

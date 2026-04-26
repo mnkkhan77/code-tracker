@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
+import com.codetracker.codetracker_backend.constants.ProgressStatusConstants;
 import com.codetracker.codetracker_backend.dto.AdminUserDto;
 import com.codetracker.codetracker_backend.dto.UserDto;
 import com.codetracker.codetracker_backend.entity.*;
@@ -44,7 +45,7 @@ public class AdminController {
                         u.getBio(),
                         u.getCreatedDate() != null ? u.getCreatedDate().toString() : null,
                         (int) u.getProgressList().stream()
-                                .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                                .filter(p -> ProgressStatusConstants.COMPLETED.equalsIgnoreCase(p.getStatus()))
                                 .count(),
                         "active"
                 ));

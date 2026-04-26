@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.controller.admin;
 
+import com.codetracker.codetracker_backend.constants.PurchaseStatusConstants;
 import com.codetracker.codetracker_backend.dto.AdminStatsDto;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.PurchaseRepository;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Tag(name = "Admin - Stats", description = "Platform summary stats (admin only)")
@@ -29,9 +31,7 @@ public class AdminStatsController {
     @ApiResponse(responseCode = "200", description = "Stats returned")
     @GetMapping
     public AdminStatsDto getStats() {
-        LocalDateTime startOfMonth = LocalDateTime.now()
-                .withDayOfMonth(1)
-                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
 
         long totalUsers = userRepository.count();
         long totalProblems = problemRepository.count();
@@ -40,7 +40,7 @@ public class AdminStatsController {
         BigDecimal revenueThisMonth = purchaseRepository.sumCompletedRevenueSince(startOfMonth);
 
         long newUsersThisMonth = userRepository.countByCreatedDateAfter(startOfMonth);
-        long completedPurchases = purchaseRepository.countByStatus("COMPLETED");
+        long completedPurchases = purchaseRepository.countByStatus(PurchaseStatusConstants.COMPLETED);
 
         return new AdminStatsDto(
                 totalUsers,

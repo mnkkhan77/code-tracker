@@ -3,8 +3,8 @@ package com.codetracker.codetracker_backend.dto;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import com.codetracker.codetracker_backend.constants.ProgressStatusConstants;
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.Tag;
 import com.codetracker.codetracker_backend.entity.UserProgress;
@@ -27,7 +27,7 @@ public record ProblemWithProgressDto(
         List<String> tag = problem.getTags() != null ?
                 problem.getTags().stream()
                         .map(Tag::getName)
-                        .collect(Collectors.toList()) : List.of();
+                        .toList() : List.of();
 
         List<ExternalUrlDto> externalUrlDtos = problem.getExternalUrls() != null
                 ? problem.getExternalUrls().stream()
@@ -43,7 +43,7 @@ public record ProblemWithProgressDto(
                 problem.getSlug(),
                 externalUrlDtos,
                 tag,
-                progress != null ? progress.getStatus() : "not_started",
+                progress != null ? progress.getStatus() : ProgressStatusConstants.NOT_STARTED,
                 progress != null ? progress.getBestTime() : null
         );
     }

@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import com.codetracker.codetracker_backend.config.RedisConfig;
+import com.codetracker.codetracker_backend.constants.ProgressStatusConstants;
 import com.codetracker.codetracker_backend.dto.ProgressRequestDto;
 import com.codetracker.codetracker_backend.dto.ProgressResponseDto;
 import com.codetracker.codetracker_backend.dto.UserStatsDto;
@@ -83,7 +84,7 @@ public class UserProgressServiceImpl implements UserProgressService {
 
         // auto-record attempt when bestTime is saved
         if (dto.getBestTime() != null) {
-            boolean isCompleted = "completed".equalsIgnoreCase(saved.getStatus());
+            boolean isCompleted = ProgressStatusConstants.COMPLETED.equalsIgnoreCase(saved.getStatus());
             Attempt attempt = new Attempt();
             attempt.setDuration(dto.getBestTime().intValue());
             attempt.setDate(LocalDateTime.now());
@@ -93,7 +94,7 @@ public class UserProgressServiceImpl implements UserProgressService {
         }
 
         // auto-schedule for spaced repetition when first marked completed
-        if ("completed".equalsIgnoreCase(dto.getStatus())) {
+        if (ProgressStatusConstants.COMPLETED.equalsIgnoreCase(dto.getStatus())) {
             reminderProblemService.scheduleReview(user.getId(), problem.getId());
         }
 
@@ -116,8 +117,8 @@ public class UserProgressServiceImpl implements UserProgressService {
         List<UserProgress> progressList = userProgressRepository.findByUserId(userId);
 
         long totalProblems = allProblems.size();
-        long completed = progressList.stream().filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus())).count();
-        long inProgress = progressList.stream().filter(p -> "IN_PROGRESS".equalsIgnoreCase(p.getStatus())).count();
+        long completed = progressList.stream().filter(p -> ProgressStatusConstants.COMPLETED.equalsIgnoreCase(p.getStatus())).count();
+        long inProgress = progressList.stream().filter(p -> ProgressStatusConstants.IN_PROGRESS.equalsIgnoreCase(p.getStatus())).count();
         long notStarted = totalProblems - completed - inProgress;
 
         long totalTimeSpent = progressList.stream()
@@ -135,7 +136,7 @@ public class UserProgressServiceImpl implements UserProgressService {
                         Collectors.counting()));
 
         Map<String, Long> completedByDifficulty = progressList.stream()
-                .filter(p -> "COMPLETED".equalsIgnoreCase(p.getStatus()))
+                .filter(p -> ProgressStatusConstants.COMPLETED.equalsIgnoreCase(p.getStatus()))
                 .collect(Collectors.groupingBy(
                         p -> p.getProblem().getDifficulty() != null ? p.getProblem().getDifficulty().toLowerCase() : "unknown",
                         Collectors.counting()));

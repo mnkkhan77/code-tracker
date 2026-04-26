@@ -16,11 +16,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.codetracker.codetracker_backend.config.RedisConfig;
-import com.codetracker.codetracker_backend.dto.ExternalUrlDto;
 import com.codetracker.codetracker_backend.dto.ProblemDto;
 import com.codetracker.codetracker_backend.dto.ProblemWithProgressDto;
 import com.codetracker.codetracker_backend.entity.Problem;
-import com.codetracker.codetracker_backend.entity.Tag;
 import com.codetracker.codetracker_backend.entity.UserProgress;
 import com.codetracker.codetracker_backend.repository.ProblemRepository;
 import com.codetracker.codetracker_backend.repository.UserProgressRepository;
@@ -53,7 +51,7 @@ public class ProblemServiceImpl implements ProblemService {
     public List<ProblemDto> getAllProblems() {
         return problemRepository.findAll().stream()
                 .map(ProblemDto::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -81,7 +79,7 @@ public class ProblemServiceImpl implements ProblemService {
     public List<ProblemDto> getProblemsByTopicId(UUID topicId) {
         return problemRepository.findByTopicId(topicId).stream()
                 .map(ProblemDto::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -127,27 +125,7 @@ public class ProblemServiceImpl implements ProblemService {
                 ));
 
         return problems.stream()
-                .map(problem -> {
-                    UserProgress progress = progressMap.get(problem.getId());
-
-                    return new ProblemWithProgressDto(
-                            problem.getId(),
-                            problem.getTitle(),
-                            problem.getDifficulty(),
-                            problem.getTopic() != null ? problem.getTopic().getName() : null,
-                            problem.getSlug(),
-                            problem.getExternalUrls() != null
-                                    ? problem.getExternalUrls().stream()
-                                    .map(url -> new ExternalUrlDto(url.getPlatform(), url.getUrl()))
-                                    .toList()
-                                    : List.of(),
-                            problem.getTags() != null
-                                    ? problem.getTags().stream().map(Tag::getName).toList()
-                                    : List.of(),
-                            progress != null ? progress.getStatus() : "not_started",
-                            progress != null ? progress.getBestTime() : null
-                    );
-                })
+                .map(problem -> ProblemWithProgressDto.toDto(problem, progressMap))
                 .toList();
     }
 
@@ -161,26 +139,7 @@ public class ProblemServiceImpl implements ProblemService {
                 .stream()
                 .collect(Collectors.toMap(up -> up.getProblem().getId(), up -> up));
 
-        return problemPage.map(problem -> {
-            UserProgress progress = progressMap.get(problem.getId());
-            return new ProblemWithProgressDto(
-                    problem.getId(),
-                    problem.getTitle(),
-                    problem.getDifficulty(),
-                    problem.getTopic() != null ? problem.getTopic().getName() : null,
-                    problem.getSlug(),
-                    problem.getExternalUrls() != null
-                            ? problem.getExternalUrls().stream()
-                            .map(url -> new ExternalUrlDto(url.getPlatform(), url.getUrl()))
-                            .toList()
-                            : List.of(),
-                    problem.getTags() != null
-                            ? problem.getTags().stream().map(Tag::getName).toList()
-                            : List.of(),
-                    progress != null ? progress.getStatus() : "not_started",
-                    progress != null ? progress.getBestTime() : null
-            );
-        });
+        return problemPage.map(problem -> ProblemWithProgressDto.toDto(problem, progressMap));
     }
 
     @Override
@@ -199,26 +158,7 @@ public class ProblemServiceImpl implements ProblemService {
                 .stream()
                 .collect(Collectors.toMap(up -> up.getProblem().getId(), up -> up));
 
-        return problemPage.map(problem -> {
-            UserProgress progress = progressMap.get(problem.getId());
-            return new ProblemWithProgressDto(
-                    problem.getId(),
-                    problem.getTitle(),
-                    problem.getDifficulty(),
-                    problem.getTopic() != null ? problem.getTopic().getName() : null,
-                    problem.getSlug(),
-                    problem.getExternalUrls() != null
-                            ? problem.getExternalUrls().stream()
-                            .map(url -> new ExternalUrlDto(url.getPlatform(), url.getUrl()))
-                            .toList()
-                            : List.of(),
-                    problem.getTags() != null
-                            ? problem.getTags().stream().map(Tag::getName).toList()
-                            : List.of(),
-                    progress != null ? progress.getStatus() : "not_started",
-                    progress != null ? progress.getBestTime() : null
-            );
-        });
+        return problemPage.map(problem -> ProblemWithProgressDto.toDto(problem, progressMap));
     }
 
     @Override

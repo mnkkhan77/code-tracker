@@ -11,7 +11,8 @@
       "Bash(./node_modules/.bin/tsc -b --noEmit)",
       "Bash(echo \"Exit code: $?\")",
       "Bash(bun run *)",
-      "Bash(npx update-browserslist-db@latest)"
+      "Bash(npx update-browserslist-db@latest)",
+      "Bash(xargs wc *)"
     ]
   }
 }

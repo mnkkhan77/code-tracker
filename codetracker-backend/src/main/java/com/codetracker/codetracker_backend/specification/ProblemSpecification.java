@@ -1,5 +1,6 @@
 package com.codetracker.codetracker_backend.specification;
 
+import com.codetracker.codetracker_backend.constants.ProgressStatusConstants;
 import com.codetracker.codetracker_backend.entity.Problem;
 import com.codetracker.codetracker_backend.entity.Tag;
 import com.codetracker.codetracker_backend.entity.UserProgress;
@@ -76,13 +77,13 @@ public class ProblemSpecification {
             }
 
             if (query != null && status != null && !status.isBlank() && userId != null) {
-                if ("not_started".equals(status)) {
+                if (ProgressStatusConstants.NOT_STARTED.equals(status)) {
                     Subquery<UUID> startedSubquery = query.subquery(UUID.class);
                     Root<UserProgress> startedRoot = startedSubquery.from(UserProgress.class);
                     startedSubquery.select(startedRoot.get("problem").get("id"))
                             .where(
                                     cb.equal(startedRoot.get("user").get("id"), userId),
-                                    startedRoot.get("status").in("in_progress", "completed")
+                                    startedRoot.get("status").in(ProgressStatusConstants.IN_PROGRESS, ProgressStatusConstants.COMPLETED)
                             );
                     predicates.add(cb.not(root.get("id").in(startedSubquery)));
                 } else {

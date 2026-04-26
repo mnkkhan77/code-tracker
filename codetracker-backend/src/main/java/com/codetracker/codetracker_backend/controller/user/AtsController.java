@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.codetracker.codetracker_backend.constants.PurchaseStatusConstants;
 import com.codetracker.codetracker_backend.entity.Purchase;
 import com.codetracker.codetracker_backend.entity.Resume;
 import com.codetracker.codetracker_backend.entity.User;
@@ -101,7 +102,7 @@ public class AtsController {
         purchase.setProductType("CREDITS");
         purchase.setAmount(BigDecimal.valueOf(price));
         purchase.setCurrency("USD");
-        purchase.setStatus("COMPLETED");
+        purchase.setStatus(PurchaseStatusConstants.COMPLETED);
         purchase.setPaidAt(LocalDateTime.now());
         purchase.setProviderRef("manual-" + UUID.randomUUID());
         purchaseRepository.save(purchase);
@@ -203,7 +204,7 @@ public class AtsController {
                 JsonNode analysis = objectMapper.readTree(analysisJson);
                 resume.setAtsScore(analysis.path("atsScore").asInt(0));
                 resume.setAnalysis(analysisJson);
-                resume.setStatus("COMPLETED");
+                resume.setStatus(PurchaseStatusConstants.COMPLETED);
             } catch (Exception e) {
                 log.warn("Failed to parse analysis response: {}", e.getMessage());
                 resume.setStatus("FAILED");
