@@ -1,4 +1,5 @@
 // src/pages/ProblemsPage.tsx
+import { AdBanner } from "@/components/AdBanner";
 import { Problem } from "@/types/api";
 import { ProblemFormModal } from "@/components/problems/ProblemFormModal";
 import { ProblemsDataTable } from "@/components/problems/ProblemsDataTable";
@@ -139,6 +140,10 @@ export default function ProblemsPage() {
           </h1>
           {isAdmin && <Button onClick={openAddModal}>Add Problem</Button>}
         </div>
+        <AdBanner
+          slot={import.meta.env.VITE_AD_SLOT_PROBLEMS ?? ""}
+          className="w-full"
+        />
         <Card>
           <CardHeader>
             <CardTitle>

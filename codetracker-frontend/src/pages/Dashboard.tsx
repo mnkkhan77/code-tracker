@@ -1,5 +1,6 @@
 // src/pages/Dashboard
 
+import { AdBanner } from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -221,6 +222,11 @@ function DashboardContent() {
             </motion.div>
           ))}
         </motion.div>
+
+        <AdBanner
+          slot={import.meta.env.VITE_AD_SLOT_DASHBOARD ?? ""}
+          className="w-full"
+        />
 
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
           {/* Progress Overview */}

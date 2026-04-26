@@ -1,4 +1,5 @@
 // src/pages/TopicPage.tsx
+import { AdBanner } from "@/components/AdBanner";
 import { ProblemsDataTable } from "@/components/problems/ProblemsDataTable";
 import { ProblemsToolbar } from "@/components/problems/ProblemsToolbar";
 import { PaginationControls } from "@/components/ui/PaginationControls";
@@ -90,6 +91,10 @@ export default function TopicPage() {
         totalElements={totalElements}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
+      />
+      <AdBanner
+        slot={import.meta.env.VITE_AD_SLOT_TOPIC ?? ""}
+        className="w-full"
       />
     </div>
   );
