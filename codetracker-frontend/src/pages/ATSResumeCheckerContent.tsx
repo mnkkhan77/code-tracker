@@ -11,6 +11,7 @@ import { useATSResumeChecker, useAuth } from "@/hooks/useATSResumeChecker";
 import { motion } from "framer-motion";
 import {
   CheckCircle2,
+  ClipboardPaste,
   CreditCard,
   FileText,
   Lightbulb,
